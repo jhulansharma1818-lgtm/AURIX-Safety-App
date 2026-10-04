@@ -2,35 +2,836 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.1.0
-  description: API specification
+  version: 0.2.0
+  description: AURIX journey, incident, contact, responder, and ResponseChain API
 servers:
   - url: /api
-    description: Base API path
+    description: Same-origin API
 tags:
   - name: health
-    description: Health operations
+  - name: auth
+  - name: journeys
+  - name: incidents
+  - name: contacts
+  - name: responders
+  - name: demo
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
-      summary: Health check
-      description: Returns server health status
+      summary: Check API and database status
       responses:
         "200":
-          description: Healthy
+          description: API and database status
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /auth/session:
+    get:
+      operationId: getAuthSession
+      tags: [auth]
+      summary: Get the current signed-in or development demo session
+      responses:
+        "200":
+          description: Current session state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+  /auth/register:
+    post:
+      operationId: registerUser
+      tags: [auth]
+      summary: Create or update the signed-in user's AURIX profile
+      description: The server derives identity and role from the verified Clerk account and server-side access configuration.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegistrationInput"
+      responses:
+        "200":
+          description: Profile created or updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /demo/seed:
+    post:
+      operationId: seedDemoData
+      tags: [demo]
+      summary: Seed the synthetic development dataset
+      description: Development only. Creates fixed synthetic users, a journey, an incident, a responder, a trusted contact, and ResponseChain events.
+      responses:
+        "200":
+          description: Demo seed status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoSeedResult"
+        "404":
+          description: Not available outside development
+  /journeys:
+    post:
+      operationId: createJourney
+      tags: [journeys]
+      summary: Create a journey for the signed-in user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JourneyInput"
+      responses:
+        "201":
+          description: Journey created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Journey"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /journeys/active:
+    get:
+      operationId: getActiveJourney
+      tags: [journeys]
+      summary: Get the caller's active journey or a contact-authorized shared journey
+      responses:
+        "200":
+          description: Active journey, if visible to the caller
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActiveJourneyResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /journeys/{journeyId}/status:
+    patch:
+      operationId: updateJourneyStatus
+      tags: [journeys]
+      summary: Update a journey's status
+      parameters:
+        - $ref: "#/components/parameters/JourneyId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JourneyStatusUpdate"
+      responses:
+        "200":
+          description: Updated journey
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Journey"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /journeys/{journeyId}/location:
+    patch:
+      operationId: updateJourneyLocation
+      tags: [journeys]
+      summary: Save a simulated or user-provided journey location
+      parameters:
+        - $ref: "#/components/parameters/JourneyId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JourneyLocationUpdate"
+      responses:
+        "200":
+          description: Updated journey
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Journey"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /journeys/{journeyId}/sharing:
+    patch:
+      operationId: updateJourneySharing
+      tags: [journeys]
+      summary: Change whether verified trusted contacts can view journey context
+      parameters:
+        - $ref: "#/components/parameters/JourneyId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JourneySharingUpdate"
+      responses:
+        "200":
+          description: Updated journey
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Journey"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /emergency-contacts:
+    get:
+      operationId: getEmergencyContacts
+      tags: [contacts]
+      summary: List the caller's trusted contacts
+      responses:
+        "200":
+          description: Trusted contacts owned by the caller
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmergencyContactsResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      operationId: createEmergencyContact
+      tags: [contacts]
+      summary: Add a trusted contact invitation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmergencyContactInput"
+      responses:
+        "201":
+          description: Trusted contact created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmergencyContact"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /incidents:
+    post:
+      operationId: createIncident
+      tags: [incidents]
+      summary: Create a simulated incident owned by the caller
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IncidentInput"
+      responses:
+        "201":
+          description: Incident created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentView"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /incidents/active:
+    get:
+      operationId: getActiveIncidents
+      tags: [incidents]
+      summary: List incidents the caller is authorized to see
+      description: Authority users see authorized incident records; responders receive actionable details without victim identity; trusted contacts only see shared incidents.
+      responses:
+        "200":
+          description: Authorized active incidents
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActiveIncidentsResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /incidents/{incidentId}/accept:
+    post:
+      operationId: acceptIncident
+      tags: [incidents]
+      summary: Assign an active incident to the verified responder
+      parameters:
+        - $ref: "#/components/parameters/IncidentId"
+      responses:
+        "200":
+          description: Updated incident
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentView"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /incidents/{incidentId}/events:
+    post:
+      operationId: createResponseEvent
+      tags: [incidents]
+      summary: Append an authorized ResponseChain audit event
+      parameters:
+        - $ref: "#/components/parameters/IncidentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResponseEventInput"
+      responses:
+        "201":
+          description: Recorded event
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseEvent"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /incidents/{incidentId}/resolve:
+    post:
+      operationId: resolveIncident
+      tags: [incidents]
+      summary: Resolve an incident and append a resolution event
+      parameters:
+        - $ref: "#/components/parameters/IncidentId"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResolveIncidentInput"
+      responses:
+        "200":
+          description: Resolved incident
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentView"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /responders:
+    post:
+      operationId: registerResponder
+      tags: [responders]
+      summary: Create or update the signed-in verified responder's profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResponderInput"
+      responses:
+        "200":
+          description: Responder profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Responder"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /responders/available:
+    get:
+      operationId: getAvailableResponders
+      tags: [responders]
+      summary: List verified responders available for coordination
+      responses:
+        "200":
+          description: Available responder summaries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailableRespondersResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /responders/status:
+    patch:
+      operationId: updateResponderStatus
+      tags: [responders]
+      summary: Update the caller's responder availability
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResponderStatusUpdate"
+      responses:
+        "200":
+          description: Updated responder profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Responder"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 components:
+  parameters:
+    JourneyId:
+      name: journeyId
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    IncidentId:
+      name: incidentId
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+  responses:
+    Unauthorized:
+      description: Authentication is required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+    Forbidden:
+      description: The caller is not authorized for this operation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
   schemas:
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
     HealthStatus:
       type: object
       properties:
         status:
           type: string
-      required:
-        - status
-
+          enum: [ok, degraded]
+        database:
+          type: string
+          enum: [connected, unavailable]
+        demoData:
+          type: boolean
+        checkedAt:
+          type: string
+          format: date-time
+      required: [status, database, demoData, checkedAt]
+    UserRole:
+      type: string
+      enum: [user, emergency_contact, responder, authority]
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: [string, "null"]
+        role:
+          $ref: "#/components/schemas/UserRole"
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, email, phone, role, createdAt]
+    UserRegistrationInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        phone:
+          type: [string, "null"]
+          maxLength: 40
+      required: [name]
+      additionalProperties: false
+    AuthSession:
+      type: object
+      properties:
+        signedIn:
+          type: boolean
+        user:
+          anyOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+        demoMode:
+          type: boolean
+      required: [signedIn, user, demoMode]
+    GeoPoint:
+      type: object
+      properties:
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+        label:
+          type: string
+          maxLength: 200
+      required: [latitude, longitude]
+      additionalProperties: false
+    RouteSnapshot:
+      type: object
+      properties:
+        origin:
+          type: string
+          maxLength: 200
+        destination:
+          type: string
+          maxLength: 200
+        points:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeoPoint"
+      required: [origin, destination]
+      additionalProperties: false
+    JourneyStatus:
+      type: string
+      enum: [planned, active, paused, arrived, cancelled]
+    Journey:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        destination:
+          type: string
+        vehicleNumber:
+          type: [string, "null"]
+        driverName:
+          type: [string, "null"]
+        startTime:
+          type: string
+          format: date-time
+        status:
+          $ref: "#/components/schemas/JourneyStatus"
+        expectedRoute:
+          anyOf:
+            - $ref: "#/components/schemas/RouteSnapshot"
+            - type: "null"
+        currentLocation:
+          anyOf:
+            - $ref: "#/components/schemas/GeoPoint"
+            - type: "null"
+        riskLevel:
+          type: string
+          enum: [low, medium, high, critical]
+        shareWithContacts:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, userId, destination, vehicleNumber, driverName, startTime, status, expectedRoute, currentLocation, riskLevel, shareWithContacts, createdAt]
+    JourneyInput:
+      type: object
+      properties:
+        destination:
+          type: string
+          minLength: 1
+          maxLength: 200
+        vehicleNumber:
+          type: [string, "null"]
+          maxLength: 40
+        driverName:
+          type: [string, "null"]
+          maxLength: 120
+        expectedRoute:
+          $ref: "#/components/schemas/RouteSnapshot"
+        currentLocation:
+          $ref: "#/components/schemas/GeoPoint"
+        shareWithContacts:
+          type: boolean
+      required: [destination, expectedRoute]
+      additionalProperties: false
+    ActiveJourneyResponse:
+      type: object
+      properties:
+        journey:
+          anyOf:
+            - $ref: "#/components/schemas/Journey"
+            - type: "null"
+      required: [journey]
+    JourneyStatusUpdate:
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/JourneyStatus"
+      required: [status]
+      additionalProperties: false
+    JourneyLocationUpdate:
+      type: object
+      properties:
+        location:
+          $ref: "#/components/schemas/GeoPoint"
+      required: [location]
+      additionalProperties: false
+    JourneySharingUpdate:
+      type: object
+      properties:
+        shareWithContacts:
+          type: boolean
+      required: [shareWithContacts]
+      additionalProperties: false
+    EmergencyContact:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        name:
+          type: string
+        email:
+          type: [string, "null"]
+          format: email
+        phone:
+          type: string
+        relationship:
+          type: string
+        verified:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, userId, name, email, phone, relationship, verified, createdAt]
+    EmergencyContactInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          minLength: 4
+          maxLength: 40
+        relationship:
+          type: string
+          minLength: 1
+          maxLength: 80
+      required: [name, email, phone, relationship]
+      additionalProperties: false
+    EmergencyContactsResponse:
+      type: object
+      properties:
+        contacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/EmergencyContact"
+      required: [contacts]
+    RiskLevel:
+      type: string
+      enum: [low, medium, high, critical]
+    IncidentType:
+      type: string
+      enum: [route_deviation, unexpected_stop, user_request, no_response, manual_report]
+    VerificationStatus:
+      type: string
+      enum: [not_started, pending, confirmed_safe, help_requested, no_response]
+    ResponseStatus:
+      type: string
+      enum: [open, verification_pending, responder_assigned, help_reached, resolved]
+    ResponseEvent:
+      type: object
+      properties:
+        id:
+          type: integer
+        incidentId:
+          type: integer
+        eventType:
+          type: string
+        actorId:
+          type: [integer, "null"]
+        timestamp:
+          type: string
+          format: date-time
+        details:
+          type: object
+          additionalProperties: true
+      required: [id, incidentId, eventType, actorId, timestamp, details]
+    IncidentSubject:
+      type: object
+      description: Returned only to the owner, their verified and authorized contact, or an authority user.
+      properties:
+        name:
+          type: string
+        phone:
+          type: [string, "null"]
+      required: [name, phone]
+    IncidentView:
+      type: object
+      properties:
+        id:
+          type: integer
+        journeyId:
+          type: [integer, "null"]
+        incidentType:
+          $ref: "#/components/schemas/IncidentType"
+        riskLevel:
+          $ref: "#/components/schemas/RiskLevel"
+        latitude:
+          type: number
+        longitude:
+          type: number
+        detectedAt:
+          type: string
+          format: date-time
+        verificationStatus:
+          $ref: "#/components/schemas/VerificationStatus"
+        responseStatus:
+          $ref: "#/components/schemas/ResponseStatus"
+        resolvedAt:
+          type: [string, "null"]
+          format: date-time
+        destination:
+          type: [string, "null"]
+        victim:
+          anyOf:
+            - $ref: "#/components/schemas/IncidentSubject"
+            - type: "null"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResponseEvent"
+      required: [id, journeyId, incidentType, riskLevel, latitude, longitude, detectedAt, verificationStatus, responseStatus, resolvedAt, destination, victim, events]
+    IncidentInput:
+      type: object
+      properties:
+        journeyId:
+          type: [integer, "null"]
+          minimum: 1
+        incidentType:
+          $ref: "#/components/schemas/IncidentType"
+        riskLevel:
+          $ref: "#/components/schemas/RiskLevel"
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+        verificationStatus:
+          $ref: "#/components/schemas/VerificationStatus"
+      required: [incidentType, riskLevel, latitude, longitude, verificationStatus]
+      additionalProperties: false
+    ActiveIncidentsResponse:
+      type: object
+      properties:
+        incidents:
+          type: array
+          items:
+            $ref: "#/components/schemas/IncidentView"
+      required: [incidents]
+    EventType:
+      type: string
+      enum: [journey_started, route_deviation_detected, unexpected_stop_detected, verification_requested, user_confirmed_safe, user_requested_help, contact_acknowledged, responder_accepted, help_reached, incident_resolved, status_updated]
+    ResponseEventInput:
+      type: object
+      properties:
+        eventType:
+          $ref: "#/components/schemas/EventType"
+        details:
+          type: object
+          additionalProperties: true
+      required: [eventType]
+      additionalProperties: false
+    ResolveIncidentInput:
+      type: object
+      properties:
+        details:
+          type: object
+          additionalProperties: true
+      additionalProperties: false
+    ResponderStatus:
+      type: string
+      enum: [available, busy, offline]
+    Responder:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        responderType:
+          type: string
+        phone:
+          type: [string, "null"]
+        verified:
+          type: boolean
+        availabilityStatus:
+          $ref: "#/components/schemas/ResponderStatus"
+        currentLocation:
+          anyOf:
+            - $ref: "#/components/schemas/GeoPoint"
+            - type: "null"
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, userId, responderType, phone, verified, availabilityStatus, currentLocation, createdAt]
+    ResponderInput:
+      type: object
+      properties:
+        responderType:
+          type: string
+          minLength: 1
+          maxLength: 100
+        phone:
+          type: [string, "null"]
+          maxLength: 40
+        currentLocation:
+          $ref: "#/components/schemas/GeoPoint"
+      required: [responderType]
+      additionalProperties: false
+    ResponderSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        responderType:
+          type: string
+        availabilityStatus:
+          $ref: "#/components/schemas/ResponderStatus"
+        currentLocation:
+          anyOf:
+            - $ref: "#/components/schemas/GeoPoint"
+            - type: "null"
+      required: [id, responderType, availabilityStatus, currentLocation]
+    AvailableRespondersResponse:
+      type: object
+      properties:
+        responders:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResponderSummary"
+      required: [responders]
+    ResponderStatusUpdate:
+      type: object
+      properties:
+        availabilityStatus:
+          $ref: "#/components/schemas/ResponderStatus"
+      required: [availabilityStatus]
+      additionalProperties: false
+    DemoSeedResult:
+      type: object
+      properties:
+        seeded:
+          type: boolean
+        message:
+          type: string
+        users:
+          type: integer
+        journeys:
+          type: integer
+        incidents:
+          type: integer
+      required: [seeded, message, users, journeys, incidents]

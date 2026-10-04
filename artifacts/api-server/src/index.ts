@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { seedDemoDataset } from "./lib/demo-seed";
 
 const rawPort = process.env["PORT"];
 
@@ -23,3 +24,19 @@ app.listen(port, (err) => {
 
   logger.info({ port }, "Server listening");
 });
+
+if (process.env.NODE_ENV === "development") {
+  void seedDemoDataset()
+    .then((result) => {
+      logger.info(
+        { users: result.users, journeys: result.journeys, incidents: result.incidents },
+        "Synthetic demo dataset is ready",
+      );
+    })
+    .catch((error) => {
+      logger.warn(
+        { err: error },
+        "Synthetic demo data was not seeded; check the database schema and connection",
+      );
+    });
+}

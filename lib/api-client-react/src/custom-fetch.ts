@@ -7,6 +7,7 @@ export type ErrorType<T = unknown> = ApiError<T>;
 export type BodyType<T> = T;
 
 export type AuthTokenGetter = () => Promise<string | null> | string | null;
+export type RequestHeadersGetter = () => HeadersInit | null;
 
 const NO_BODY_STATUS = new Set([204, 205, 304]);
 const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
@@ -17,6 +18,7 @@ const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
 
 let _baseUrl: string | null = null;
 let _authTokenGetter: AuthTokenGetter | null = null;
+let _requestHeadersGetter: RequestHeadersGetter | null = null;
 
 /**
  * Set a base URL that is prepended to every relative request URL
@@ -42,6 +44,15 @@ export function setBaseUrl(url: string | null): void {
  */
 export function setAuthTokenGetter(getter: AuthTokenGetter | null): void {
   _authTokenGetter = getter;
+}
+
+/**
+ * Register same-origin request headers, for example a development-only demo
+ * persona. Do not use this for production authorization; production identity
+ * is established by the Clerk session cookie.
+ */
+export function setRequestHeadersGetter(getter: RequestHeadersGetter | null): void {
+  _requestHeadersGetter = getter;
 }
 
 function isRequest(input: RequestInfo | URL): input is Request {
@@ -335,7 +346,11 @@ export async function customFetch<T = unknown>(
     throw new TypeError(`customFetch: ${method} requests cannot have a body.`);
   }
 
-  const headers = mergeHeaders(isRequest(input) ? input.headers : undefined, headersInit);
+  const headers = mergeHeaders(
+    isRequest(input) ? input.headers : undefined,
+    headersInit,
+    _requestHeadersGetter?.() ?? undefined,
+  );
 
   if (
     typeof init.body === "string" &&
@@ -360,7 +375,12 @@ export async function customFetch<T = unknown>(
 
   const requestInfo = { method, url: resolveUrl(input) };
 
-  const response = await fetch(input, { ...init, method, headers });
+  const response = await fetch(input, {
+    ...init,
+    method,
+    headers,
+    credentials: init.credentials ?? "same-origin",
+  });
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);

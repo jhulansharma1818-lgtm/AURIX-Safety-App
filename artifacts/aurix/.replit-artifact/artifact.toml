@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "AURIX"
+description = "A responsive proactive safety prototype that simulates journeys, risk signals, verification, and coordinated response for women. Includes role-specific portals and demo scenarios; no real emergency services are connected."
+version = "1.0.0"
+id = "artifacts/aurix"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21520
+
+[services.development]
+run = "pnpm --filter @workspace/aurix run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/aurix", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/aurix/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21520"
+BASE_PATH = "/"

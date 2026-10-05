@@ -1,6 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 import {
   db,
+  campusZonesTable,
   emergencyContactsTable,
   incidentsTable,
   journeysTable,
@@ -46,8 +47,108 @@ const demoPoint = {
   label: "Northgate Community Centre · synthetic location",
 };
 
+const demoCampusZones = [
+  {
+    slug: "demo-campus-hostel",
+    campusName: "AURIX Demo Campus",
+    name: "West Residence Hall",
+    zoneType: "girls_hostel" as const,
+    assistanceStatus: "available" as const,
+    contextNote: "Campus safety information is available for this zone.",
+    latitude: 12.9722,
+    longitude: 77.5934,
+  },
+  {
+    slug: "demo-campus-academic",
+    campusName: "AURIX Demo Campus",
+    name: "Central Academic Block",
+    zoneType: "academic_block" as const,
+    assistanceStatus: "available" as const,
+    contextNote: "Campus safety information is available for this zone.",
+    latitude: 12.9731,
+    longitude: 77.5961,
+  },
+  {
+    slug: "demo-campus-parking",
+    campusName: "AURIX Demo Campus",
+    name: "North Parking Area",
+    zoneType: "parking_area" as const,
+    assistanceStatus: "limited" as const,
+    contextNote: "Nearby verified assistance may be limited at this time.",
+    latitude: 12.9742,
+    longitude: 77.5952,
+  },
+  {
+    slug: "demo-campus-gate",
+    campusName: "AURIX Demo Campus",
+    name: "East Campus Gate",
+    zoneType: "campus_gate" as const,
+    assistanceStatus: "available" as const,
+    contextNote: "Campus safety information is available for this zone.",
+    latitude: 12.9711,
+    longitude: 77.5973,
+  },
+  {
+    slug: "demo-campus-pathway",
+    campusName: "AURIX Demo Campus",
+    name: "Greenway Pathway",
+    zoneType: "isolated_pathway" as const,
+    assistanceStatus: "limited" as const,
+    contextNote: "Nearby verified assistance may be limited; this is not a danger rating.",
+    latitude: 12.9704,
+    longitude: 77.5948,
+  },
+  {
+    slug: "demo-campus-construction",
+    campusName: "AURIX Demo Campus",
+    name: "Science Annex Works",
+    zoneType: "construction_zone" as const,
+    assistanceStatus: "unknown" as const,
+    contextNote: "Assistance availability has not been confirmed for this zone.",
+    latitude: 12.9749,
+    longitude: 77.5971,
+  },
+  {
+    slug: "demo-campus-commons",
+    campusName: "AURIX Demo Campus",
+    name: "Commons and Cafeteria",
+    zoneType: "common_area" as const,
+    assistanceStatus: "available" as const,
+    contextNote: "Campus safety information is available for this zone.",
+    latitude: 12.9727,
+    longitude: 77.5981,
+  },
+  {
+    slug: "demo-campus-other",
+    campusName: "AURIX Demo Campus",
+    name: "Other Campus Zone",
+    zoneType: "other" as const,
+    assistanceStatus: "unknown" as const,
+    contextNote: "Assistance availability has not been confirmed for this zone.",
+    latitude: 12.9708,
+    longitude: 77.5962,
+  },
+];
+
 export async function seedDemoDataset() {
   return db.transaction(async (tx) => {
+    for (const zone of demoCampusZones) {
+      await tx
+        .insert(campusZonesTable)
+        .values(zone)
+        .onConflictDoUpdate({
+          target: campusZonesTable.slug,
+          set: {
+            campusName: zone.campusName,
+            name: zone.name,
+            zoneType: zone.zoneType,
+            assistanceStatus: zone.assistanceStatus,
+            contextNote: zone.contextNote,
+            latitude: zone.latitude,
+            longitude: zone.longitude,
+          },
+        });
+    }
     const profileRows = await Promise.all(
       demoUsers.map(async (demoUser) => {
         const [profile] = await tx

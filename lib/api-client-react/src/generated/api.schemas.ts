@@ -223,6 +223,11 @@ export const IncidentType = {
   user_request: 'user_request',
   no_response: 'no_response',
   manual_report: 'manual_report',
+  user_feels_unsafe: 'user_feels_unsafe',
+  being_followed: 'being_followed',
+  being_surrounded: 'being_surrounded',
+  manual_sos: 'manual_sos',
+  new_incident: 'new_incident',
 } as const;
 
 export type VerificationStatus = typeof VerificationStatus[keyof typeof VerificationStatus];
@@ -234,6 +239,11 @@ export const VerificationStatus = {
   confirmed_safe: 'confirmed_safe',
   help_requested: 'help_requested',
   no_response: 'no_response',
+  reported: 'reported',
+  under_verification: 'under_verification',
+  verified: 'verified',
+  unconfirmed: 'unconfirmed',
+  resolved: 'resolved',
 } as const;
 
 export type ResponseStatus = typeof ResponseStatus[keyof typeof ResponseStatus];
@@ -259,6 +269,76 @@ export interface ResponseEvent {
   details: ResponseEventDetails;
 }
 
+export type RiskSignalCode = typeof RiskSignalCode[keyof typeof RiskSignalCode];
+
+
+export const RiskSignalCode = {
+  route_deviation: 'route_deviation',
+  unexpected_stop: 'unexpected_stop',
+  contextual_location: 'contextual_location',
+  safety_request: 'safety_request',
+  manual_sos: 'manual_sos',
+  no_response: 'no_response',
+  multiple_requests: 'multiple_requests',
+  unusual_journey: 'unusual_journey',
+} as const;
+
+export interface RiskSignal {
+  code: RiskSignalCode;
+  label: string;
+  points: number;
+}
+
+export type IncidentContext = typeof IncidentContext[keyof typeof IncidentContext];
+
+
+export const IncidentContext = {
+  campus: 'campus',
+  public_space: 'public_space',
+} as const;
+
+export type DetectionMode = typeof DetectionMode[keyof typeof DetectionMode];
+
+
+export const DetectionMode = {
+  journey_signal: 'journey_signal',
+  new_incident_no_history: 'new_incident_no_history',
+  user_safety_request: 'user_safety_request',
+  manual_sos: 'manual_sos',
+  campus_report: 'campus_report',
+} as const;
+
+export type CampusZoneType = typeof CampusZoneType[keyof typeof CampusZoneType];
+
+
+export const CampusZoneType = {
+  girls_hostel: 'girls_hostel',
+  academic_block: 'academic_block',
+  parking_area: 'parking_area',
+  campus_gate: 'campus_gate',
+  isolated_pathway: 'isolated_pathway',
+  construction_zone: 'construction_zone',
+  common_area: 'common_area',
+  other: 'other',
+} as const;
+
+export type CampusAssistance = typeof CampusAssistance[keyof typeof CampusAssistance];
+
+
+export const CampusAssistance = {
+  available: 'available',
+  limited: 'limited',
+  unknown: 'unknown',
+} as const;
+
+export interface LastSafeLocation {
+  latitude: number;
+  longitude: number;
+  label?: string;
+  recordedAt: string;
+  journeyId: number;
+}
+
 /**
  * Returned only to the owner, their verified and authorized contact, or an authority user.
  */
@@ -274,6 +354,12 @@ export interface IncidentView {
   journeyId: number | null;
   incidentType: IncidentType;
   riskLevel: RiskLevel;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  riskScore: number;
+  riskSignals: RiskSignal[];
   latitude: number;
   longitude: number;
   detectedAt: string;
@@ -283,6 +369,21 @@ export interface IncidentView {
   resolvedAt: string | null;
   /** @nullable */
   destination: string | null;
+  contextType: IncidentContext;
+  /** @nullable */
+  campusZoneId: number | null;
+  /** @nullable */
+  campusZoneName: string | null;
+  /** @nullable */
+  locationLabel: string | null;
+  detectionMode: DetectionMode;
+  /** @nullable */
+  historicalReportsAvailable: boolean | null;
+  lastSafeLocation: LastSafeLocation | null;
+  /** @nullable */
+  assignedResponderId: number | null;
+  /** @nullable */
+  assignedResponderType: string | null;
   victim: IncidentSubject | null;
   events: ResponseEvent[];
 }
@@ -306,6 +407,18 @@ export interface IncidentInput {
      */
   longitude: number;
   verificationStatus: VerificationStatus;
+  signals?: RiskSignalCode[];
+  contextType?: IncidentContext;
+  /**
+     * @minimum 1
+     * @nullable
+     */
+  campusZoneId?: number | null;
+  /** @maxLength 200 */
+  locationLabel?: string;
+  detectionMode?: DetectionMode;
+  historicalReportsAvailable?: boolean;
+  lastSafeLocation?: LastSafeLocation | null;
 }
 
 export interface ActiveIncidentsResponse {
@@ -327,6 +440,15 @@ export const EventType = {
   help_reached: 'help_reached',
   incident_resolved: 'incident_resolved',
   status_updated: 'status_updated',
+  safety_request_received: 'safety_request_received',
+  manual_sos_triggered: 'manual_sos_triggered',
+  new_incident_detected: 'new_incident_detected',
+  trusted_contact_notification_simulated: 'trusted_contact_notification_simulated',
+  responder_notification_simulated: 'responder_notification_simulated',
+  risk_assessment_completed: 'risk_assessment_completed',
+  incident_verification_updated: 'incident_verification_updated',
+  anonymous_nearby_response: 'anonymous_nearby_response',
+  evidence_metadata_saved: 'evidence_metadata_saved',
 } as const;
 
 export type ResponseEventInputDetails = { [key: string]: unknown };
@@ -398,6 +520,190 @@ export interface DemoSeedResult {
   users: number;
   journeys: number;
   incidents: number;
+}
+
+export type CampusReportType = typeof CampusReportType[keyof typeof CampusReportType];
+
+
+export const CampusReportType = {
+  safety_concern: 'safety_concern',
+  suspicious_activity: 'suspicious_activity',
+  harassment_concern: 'harassment_concern',
+  unsafe_area: 'unsafe_area',
+  infrastructure_safety: 'infrastructure_safety',
+  other: 'other',
+} as const;
+
+export type CampusReportStatus = typeof CampusReportStatus[keyof typeof CampusReportStatus];
+
+
+export const CampusReportStatus = {
+  reported: 'reported',
+  under_verification: 'under_verification',
+  verified: 'verified',
+  unconfirmed: 'unconfirmed',
+  resolved: 'resolved',
+} as const;
+
+export interface CampusZoneOverview {
+  id: number;
+  slug: string;
+  campusName: string;
+  name: string;
+  zoneType: CampusZoneType;
+  assistanceStatus: CampusAssistance;
+  contextNote: string;
+  latitude: number;
+  longitude: number;
+  activeIncidentCount: number;
+  verifiedHistoricalReportCount: number;
+}
+
+export interface CampusNearbyIncident {
+  id: number;
+  campusZoneId: number;
+  zoneName: string;
+  incidentType: IncidentType;
+  riskLevel: RiskLevel;
+  verificationStatus: VerificationStatus;
+  responseStatus: ResponseStatus;
+  detectedAt: string;
+  /** @nullable */
+  locationLabel: string | null;
+}
+
+export interface CampusOverviewResponse {
+  zones: CampusZoneOverview[];
+  activeIncidents: CampusNearbyIncident[];
+  availableResponders: number;
+  checkedAt: string;
+}
+
+export interface CampusReport {
+  id: number;
+  /** @nullable */
+  campusZoneId: number | null;
+  /** @nullable */
+  zoneName: string | null;
+  reportType: CampusReportType;
+  details: string;
+  /** @nullable */
+  locationNote: string | null;
+  status: CampusReportStatus;
+  /** @nullable */
+  reviewNote: string | null;
+  /** @nullable */
+  reporterName: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CampusReportInput {
+  /**
+     * @minimum 1
+     * @nullable
+     */
+  campusZoneId?: number | null;
+  reportType: CampusReportType;
+  /**
+     * @minLength 8
+     * @maxLength 2000
+     */
+  details: string;
+  /**
+     * @maxLength 200
+     * @nullable
+     */
+  locationNote?: string | null;
+}
+
+export interface CampusReportReview {
+  status: CampusReportStatus;
+  /**
+     * @maxLength 1000
+     * @nullable
+     */
+  reviewNote?: string | null;
+}
+
+export interface CampusReportsResponse {
+  reports: CampusReport[];
+}
+
+export type IncidentVerificationUpdateStatus = typeof IncidentVerificationUpdateStatus[keyof typeof IncidentVerificationUpdateStatus];
+
+
+export const IncidentVerificationUpdateStatus = {
+  under_verification: 'under_verification',
+  verified: 'verified',
+  unconfirmed: 'unconfirmed',
+} as const;
+
+export interface IncidentVerificationUpdate {
+  status: IncidentVerificationUpdateStatus;
+  /**
+     * @maxLength 1000
+     * @nullable
+     */
+  note?: string | null;
+}
+
+export type IncidentEvidenceType = typeof IncidentEvidenceType[keyof typeof IncidentEvidenceType];
+
+
+export const IncidentEvidenceType = {
+  photo: 'photo',
+  video: 'video',
+  audio: 'audio',
+  description: 'description',
+} as const;
+
+export interface IncidentEvidence {
+  id: number;
+  incidentId: number;
+  evidenceType: IncidentEvidenceType;
+  description: string;
+  /** @nullable */
+  fileLabel: string | null;
+  location: GeoPoint | null;
+  recordedAt: string;
+  createdAt: string;
+}
+
+export interface IncidentEvidenceInput {
+  evidenceType: IncidentEvidenceType;
+  /**
+     * @minLength 3
+     * @maxLength 2000
+     */
+  description: string;
+  /**
+     * @maxLength 200
+     * @nullable
+     */
+  fileLabel?: string | null;
+  location?: GeoPoint | null;
+}
+
+export interface IncidentEvidenceResponse {
+  evidence: IncidentEvidence[];
+}
+
+export type NearbyAssistanceInputResponse = typeof NearbyAssistanceInputResponse[keyof typeof NearbyAssistanceInputResponse];
+
+
+export const NearbyAssistanceInputResponse = {
+  can_help: 'can_help',
+  not_available: 'not_available',
+} as const;
+
+export interface NearbyAssistanceInput {
+  response: NearbyAssistanceInputResponse;
+}
+
+export interface NearbyAssistanceResponse {
+  acknowledged: boolean;
+  message: string;
 }
 
 /**

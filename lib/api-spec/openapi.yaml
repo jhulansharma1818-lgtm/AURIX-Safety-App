@@ -15,6 +15,8 @@ tags:
   - name: contacts
   - name: responders
   - name: demo
+  - name: campus
+  - name: authority
 paths:
   /healthz:
     get:
@@ -362,6 +364,174 @@ paths:
                 $ref: "#/components/schemas/Responder"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /campus/overview:
+    get:
+      operationId: getCampusOverview
+      tags: [campus]
+      summary: Get synthetic campus zones and privacy-safe local safety context
+      responses:
+        "200":
+          description: Campus zones, aggregate active incidents, and responder coverage
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampusOverviewResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /campus/reports:
+    get:
+      operationId: getCampusReports
+      tags: [campus]
+      summary: List campus reports visible to the caller
+      responses:
+        "200":
+          description: Reports owned by the user or reviewable by authority
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampusReportsResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: createCampusReport
+      tags: [campus]
+      summary: Submit a synthetic campus safety report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampusReportInput"
+      responses:
+        "201":
+          description: Report submitted for responsible review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampusReport"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /campus/reports/{reportId}/verification:
+    patch:
+      operationId: updateCampusReportVerification
+      tags: [campus]
+      summary: Review and update a campus report as an authority user
+      parameters:
+        - $ref: "#/components/parameters/CampusReportId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampusReportReview"
+      responses:
+        "200":
+          description: Updated report review state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampusReport"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /authority/incidents:
+    get:
+      operationId: getAuthorityIncidents
+      tags: [authority]
+      summary: List active and resolved incidents for the authority review board
+      responses:
+        "200":
+          description: Full incident timeline and verification state for authorized authority users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActiveIncidentsResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /incidents/{incidentId}/verification:
+    patch:
+      operationId: updateIncidentVerification
+      tags: [incidents]
+      summary: Update incident verification state as an authority user
+      parameters:
+        - $ref: "#/components/parameters/IncidentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IncidentVerificationUpdate"
+      responses:
+        "200":
+          description: Updated incident with its audit history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentView"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /incidents/{incidentId}/evidence:
+    get:
+      operationId: getIncidentEvidence
+      tags: [incidents]
+      summary: List private evidence metadata for the owner or authority
+      parameters:
+        - $ref: "#/components/parameters/IncidentId"
+      responses:
+        "200":
+          description: Private evidence metadata (no uploaded media bytes)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentEvidenceResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: createIncidentEvidence
+      tags: [incidents]
+      summary: Save a private synthetic evidence entry for the incident owner
+      parameters:
+        - $ref: "#/components/parameters/IncidentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IncidentEvidenceInput"
+      responses:
+        "201":
+          description: Evidence metadata saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IncidentEvidence"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /incidents/{incidentId}/nearby-response:
+    post:
+      operationId: respondToNearbySafetyRequest
+      tags: [incidents]
+      summary: Record an anonymous demo response to a nearby safety request
+      parameters:
+        - $ref: "#/components/parameters/IncidentId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NearbyAssistanceInput"
+      responses:
+        "200":
+          description: Anonymous response recorded without exposing incident identity or exact location
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NearbyAssistanceResponse"
+        "403":
+          $ref: "#/components/responses/Forbidden"
 components:
   parameters:
     JourneyId:
@@ -373,6 +543,13 @@ components:
         minimum: 1
     IncidentId:
       name: incidentId
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    CampusReportId:
+      name: reportId
       in: path
       required: true
       schema:
@@ -632,10 +809,10 @@ components:
       enum: [low, medium, high, critical]
     IncidentType:
       type: string
-      enum: [route_deviation, unexpected_stop, user_request, no_response, manual_report]
+      enum: [route_deviation, unexpected_stop, user_request, no_response, manual_report, user_feels_unsafe, being_followed, being_surrounded, manual_sos, new_incident]
     VerificationStatus:
       type: string
-      enum: [not_started, pending, confirmed_safe, help_requested, no_response]
+      enum: [not_started, pending, confirmed_safe, help_requested, no_response, reported, under_verification, verified, unconfirmed, resolved]
     ResponseStatus:
       type: string
       enum: [open, verification_pending, responder_assigned, help_reached, resolved]
@@ -657,6 +834,47 @@ components:
           type: object
           additionalProperties: true
       required: [id, incidentId, eventType, actorId, timestamp, details]
+    RiskSignalCode:
+      type: string
+      enum: [route_deviation, unexpected_stop, contextual_location, safety_request, manual_sos, no_response, multiple_requests, unusual_journey]
+    RiskSignal:
+      type: object
+      properties:
+        code:
+          $ref: "#/components/schemas/RiskSignalCode"
+        label:
+          type: string
+        points:
+          type: integer
+      required: [code, label, points]
+    IncidentContext:
+      type: string
+      enum: [campus, public_space]
+    DetectionMode:
+      type: string
+      enum: [journey_signal, new_incident_no_history, user_safety_request, manual_sos, campus_report]
+    CampusZoneType:
+      type: string
+      enum: [girls_hostel, academic_block, parking_area, campus_gate, isolated_pathway, construction_zone, common_area, other]
+    CampusAssistance:
+      type: string
+      enum: [available, limited, unknown]
+    LastSafeLocation:
+      type: object
+      properties:
+        latitude:
+          type: number
+        longitude:
+          type: number
+        label:
+          type: string
+        recordedAt:
+          type: string
+          format: date-time
+        journeyId:
+          type: integer
+      required: [latitude, longitude, recordedAt, journeyId]
+      additionalProperties: false
     IncidentSubject:
       type: object
       description: Returned only to the owner, their verified and authorized contact, or an authority user.
@@ -677,6 +895,14 @@ components:
           $ref: "#/components/schemas/IncidentType"
         riskLevel:
           $ref: "#/components/schemas/RiskLevel"
+        riskScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        riskSignals:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskSignal"
         latitude:
           type: number
         longitude:
@@ -693,6 +919,26 @@ components:
           format: date-time
         destination:
           type: [string, "null"]
+        contextType:
+          $ref: "#/components/schemas/IncidentContext"
+        campusZoneId:
+          type: [integer, "null"]
+        campusZoneName:
+          type: [string, "null"]
+        locationLabel:
+          type: [string, "null"]
+        detectionMode:
+          $ref: "#/components/schemas/DetectionMode"
+        historicalReportsAvailable:
+          type: [boolean, "null"]
+        lastSafeLocation:
+          anyOf:
+            - $ref: "#/components/schemas/LastSafeLocation"
+            - type: "null"
+        assignedResponderId:
+          type: [integer, "null"]
+        assignedResponderType:
+          type: [string, "null"]
         victim:
           anyOf:
             - $ref: "#/components/schemas/IncidentSubject"
@@ -701,7 +947,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ResponseEvent"
-      required: [id, journeyId, incidentType, riskLevel, latitude, longitude, detectedAt, verificationStatus, responseStatus, resolvedAt, destination, victim, events]
+      required: [id, journeyId, incidentType, riskLevel, riskScore, riskSignals, latitude, longitude, detectedAt, verificationStatus, responseStatus, resolvedAt, destination, contextType, campusZoneId, campusZoneName, locationLabel, detectionMode, historicalReportsAvailable, lastSafeLocation, assignedResponderId, assignedResponderType, victim, events]
     IncidentInput:
       type: object
       properties:
@@ -722,6 +968,26 @@ components:
           maximum: 180
         verificationStatus:
           $ref: "#/components/schemas/VerificationStatus"
+        signals:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskSignalCode"
+        contextType:
+          $ref: "#/components/schemas/IncidentContext"
+        campusZoneId:
+          type: [integer, "null"]
+          minimum: 1
+        locationLabel:
+          type: string
+          maxLength: 200
+        detectionMode:
+          $ref: "#/components/schemas/DetectionMode"
+        historicalReportsAvailable:
+          type: boolean
+        lastSafeLocation:
+          anyOf:
+            - $ref: "#/components/schemas/LastSafeLocation"
+            - type: "null"
       required: [incidentType, riskLevel, latitude, longitude, verificationStatus]
       additionalProperties: false
     ActiveIncidentsResponse:
@@ -734,7 +1000,7 @@ components:
       required: [incidents]
     EventType:
       type: string
-      enum: [journey_started, route_deviation_detected, unexpected_stop_detected, verification_requested, user_confirmed_safe, user_requested_help, contact_acknowledged, responder_accepted, help_reached, incident_resolved, status_updated]
+      enum: [journey_started, route_deviation_detected, unexpected_stop_detected, verification_requested, user_confirmed_safe, user_requested_help, contact_acknowledged, responder_accepted, help_reached, incident_resolved, status_updated, safety_request_received, manual_sos_triggered, new_incident_detected, trusted_contact_notification_simulated, responder_notification_simulated, risk_assessment_completed, incident_verification_updated, anonymous_nearby_response, evidence_metadata_saved]
     ResponseEventInput:
       type: object
       properties:
@@ -835,3 +1101,218 @@ components:
         incidents:
           type: integer
       required: [seeded, message, users, journeys, incidents]
+    CampusReportType:
+      type: string
+      enum: [safety_concern, suspicious_activity, harassment_concern, unsafe_area, infrastructure_safety, other]
+    CampusReportStatus:
+      type: string
+      enum: [reported, under_verification, verified, unconfirmed, resolved]
+    CampusZoneOverview:
+      type: object
+      properties:
+        id:
+          type: integer
+        slug:
+          type: string
+        campusName:
+          type: string
+        name:
+          type: string
+        zoneType:
+          $ref: "#/components/schemas/CampusZoneType"
+        assistanceStatus:
+          $ref: "#/components/schemas/CampusAssistance"
+        contextNote:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        activeIncidentCount:
+          type: integer
+        verifiedHistoricalReportCount:
+          type: integer
+      required: [id, slug, campusName, name, zoneType, assistanceStatus, contextNote, latitude, longitude, activeIncidentCount, verifiedHistoricalReportCount]
+    CampusNearbyIncident:
+      type: object
+      properties:
+        id:
+          type: integer
+        campusZoneId:
+          type: integer
+        zoneName:
+          type: string
+        incidentType:
+          $ref: "#/components/schemas/IncidentType"
+        riskLevel:
+          $ref: "#/components/schemas/RiskLevel"
+        verificationStatus:
+          $ref: "#/components/schemas/VerificationStatus"
+        responseStatus:
+          $ref: "#/components/schemas/ResponseStatus"
+        detectedAt:
+          type: string
+          format: date-time
+        locationLabel:
+          type: [string, "null"]
+      required: [id, campusZoneId, zoneName, incidentType, riskLevel, verificationStatus, responseStatus, detectedAt, locationLabel]
+    CampusOverviewResponse:
+      type: object
+      properties:
+        zones:
+          type: array
+          items:
+            $ref: "#/components/schemas/CampusZoneOverview"
+        activeIncidents:
+          type: array
+          items:
+            $ref: "#/components/schemas/CampusNearbyIncident"
+        availableResponders:
+          type: integer
+        checkedAt:
+          type: string
+          format: date-time
+      required: [zones, activeIncidents, availableResponders, checkedAt]
+    CampusReport:
+      type: object
+      properties:
+        id:
+          type: integer
+        campusZoneId:
+          type: [integer, "null"]
+        zoneName:
+          type: [string, "null"]
+        reportType:
+          $ref: "#/components/schemas/CampusReportType"
+        details:
+          type: string
+        locationNote:
+          type: [string, "null"]
+        status:
+          $ref: "#/components/schemas/CampusReportStatus"
+        reviewNote:
+          type: [string, "null"]
+        reporterName:
+          type: [string, "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, campusZoneId, zoneName, reportType, details, locationNote, status, reviewNote, reporterName, createdAt, updatedAt]
+    CampusReportInput:
+      type: object
+      properties:
+        campusZoneId:
+          type: [integer, "null"]
+          minimum: 1
+        reportType:
+          $ref: "#/components/schemas/CampusReportType"
+        details:
+          type: string
+          minLength: 8
+          maxLength: 2000
+        locationNote:
+          type: [string, "null"]
+          maxLength: 200
+      required: [reportType, details]
+      additionalProperties: false
+    CampusReportReview:
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/CampusReportStatus"
+        reviewNote:
+          type: [string, "null"]
+          maxLength: 1000
+      required: [status]
+      additionalProperties: false
+    CampusReportsResponse:
+      type: object
+      properties:
+        reports:
+          type: array
+          items:
+            $ref: "#/components/schemas/CampusReport"
+      required: [reports]
+    IncidentVerificationUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [under_verification, verified, unconfirmed]
+        note:
+          type: [string, "null"]
+          maxLength: 1000
+      required: [status]
+      additionalProperties: false
+    IncidentEvidenceType:
+      type: string
+      enum: [photo, video, audio, description]
+    IncidentEvidence:
+      type: object
+      properties:
+        id:
+          type: integer
+        incidentId:
+          type: integer
+        evidenceType:
+          $ref: "#/components/schemas/IncidentEvidenceType"
+        description:
+          type: string
+        fileLabel:
+          type: [string, "null"]
+        location:
+          anyOf:
+            - $ref: "#/components/schemas/GeoPoint"
+            - type: "null"
+        recordedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, incidentId, evidenceType, description, fileLabel, location, recordedAt, createdAt]
+    IncidentEvidenceInput:
+      type: object
+      properties:
+        evidenceType:
+          $ref: "#/components/schemas/IncidentEvidenceType"
+        description:
+          type: string
+          minLength: 3
+          maxLength: 2000
+        fileLabel:
+          type: [string, "null"]
+          maxLength: 200
+        location:
+          anyOf:
+            - $ref: "#/components/schemas/GeoPoint"
+            - type: "null"
+      required: [evidenceType, description]
+      additionalProperties: false
+    IncidentEvidenceResponse:
+      type: object
+      properties:
+        evidence:
+          type: array
+          items:
+            $ref: "#/components/schemas/IncidentEvidence"
+      required: [evidence]
+    NearbyAssistanceInput:
+      type: object
+      properties:
+        response:
+          type: string
+          enum: [can_help, not_available]
+      required: [response]
+      additionalProperties: false
+    NearbyAssistanceResponse:
+      type: object
+      properties:
+        acknowledged:
+          type: boolean
+        message:
+          type: string
+      required: [acknowledged, message]

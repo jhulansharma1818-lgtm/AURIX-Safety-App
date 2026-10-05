@@ -5,8 +5,12 @@
  * AURIX journey, incident, contact, responder, and ResponseChain API
  * OpenAPI spec version: 0.2.0
  */
+import type { DetectionMode } from './detectionMode';
+import type { IncidentContext } from './incidentContext';
 import type { IncidentType } from './incidentType';
+import type { LastSafeLocation } from './lastSafeLocation';
 import type { RiskLevel } from './riskLevel';
+import type { RiskSignalCode } from './riskSignalCode';
 import type { VerificationStatus } from './verificationStatus';
 
 export interface IncidentInput {
@@ -28,4 +32,16 @@ export interface IncidentInput {
      */
   longitude: number;
   verificationStatus: VerificationStatus;
+  signals?: RiskSignalCode[];
+  contextType?: IncidentContext;
+  /**
+     * @minimum 1
+     * @nullable
+     */
+  campusZoneId?: number | null;
+  /** @maxLength 200 */
+  locationLabel?: string;
+  detectionMode?: DetectionMode;
+  historicalReportsAvailable?: boolean;
+  lastSafeLocation?: LastSafeLocation | null;
 }

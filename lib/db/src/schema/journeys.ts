@@ -14,6 +14,7 @@ import {
   journeyStatusEnum,
   riskLevelEnum,
   type GeoPoint,
+  type LastSafeLocation,
   type RouteSnapshot,
 } from "./shared";
 import { usersTable } from "./users";
@@ -32,6 +33,8 @@ export const journeysTable = pgTable(
     status: journeyStatusEnum("status").notNull().default("planned"),
     expectedRoute: jsonb("expected_route").$type<RouteSnapshot>(),
     currentLocation: jsonb("current_location").$type<GeoPoint>(),
+    lastSafeLocation: jsonb("last_safe_location").$type<LastSafeLocation>(),
+    lastSafeAt: timestamp("last_safe_at", { withTimezone: true }),
     riskLevel: riskLevelEnum("risk_level").notNull().default("low"),
     shareWithContacts: boolean("share_with_contacts").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

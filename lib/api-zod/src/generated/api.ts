@@ -496,28 +496,70 @@ export const createIncidentBodyLongitudeMin = -180;
 export const createIncidentBodyLongitudeMax = 180;
 
 
+export const createIncidentBodyLocationLabelMax = 200;
+
+
 
 export const CreateIncidentBody = zod.object({
   "journeyId": zod.number().int().min(1).nullish(),
-  "incidentType": zod.enum(['route_deviation', 'unexpected_stop', 'user_request', 'no_response', 'manual_report']),
+  "incidentType": zod.enum(['route_deviation', 'unexpected_stop', 'user_request', 'no_response', 'manual_report', 'user_feels_unsafe', 'being_followed', 'being_surrounded', 'manual_sos', 'new_incident']),
   "riskLevel": zod.enum(['low', 'medium', 'high', 'critical']),
   "latitude": zod.number().min(createIncidentBodyLatitudeMin).max(createIncidentBodyLatitudeMax),
   "longitude": zod.number().min(createIncidentBodyLongitudeMin).max(createIncidentBodyLongitudeMax),
-  "verificationStatus": zod.enum(['not_started', 'pending', 'confirmed_safe', 'help_requested', 'no_response'])
+  "verificationStatus": zod.enum(['not_started', 'pending', 'confirmed_safe', 'help_requested', 'no_response', 'reported', 'under_verification', 'verified', 'unconfirmed', 'resolved']),
+  "signals": zod.array(zod.enum(['route_deviation', 'unexpected_stop', 'contextual_location', 'safety_request', 'manual_sos', 'no_response', 'multiple_requests', 'unusual_journey'])).optional(),
+  "contextType": zod.enum(['campus', 'public_space']).optional(),
+  "campusZoneId": zod.number().int().min(1).nullish(),
+  "locationLabel": zod.string().max(createIncidentBodyLocationLabelMax).optional(),
+  "detectionMode": zod.enum(['journey_signal', 'new_incident_no_history', 'user_safety_request', 'manual_sos', 'campus_report']).optional(),
+  "historicalReportsAvailable": zod.boolean().optional(),
+  "lastSafeLocation": zod.union([zod.object({
+  "latitude": zod.number(),
+  "longitude": zod.number(),
+  "label": zod.string().optional(),
+  "recordedAt": zod.coerce.date(),
+  "journeyId": zod.number().int()
+}),zod.null()]).optional()
 })
+
+export const createIncidentResponseRiskScoreMin = 0;
+export const createIncidentResponseRiskScoreMax = 100;
+
+
 
 export const CreateIncidentResponse = zod.object({
   "id": zod.number().int(),
   "journeyId": zod.number().int().nullable(),
-  "incidentType": zod.enum(['route_deviation', 'unexpected_stop', 'user_request', 'no_response', 'manual_report']),
+  "incidentType": zod.enum(['route_deviation', 'unexpected_stop', 'user_request', 'no_response', 'manual_report', 'user_feels_unsafe', 'being_followed', 'being_surrounded', 'manual_sos', 'new_incident']),
   "riskLevel": zod.enum(['low', 'medium', 'high', 'critical']),
+  "riskScore": zod.number().int().min(createIncidentResponseRiskScoreMin).max(createIncidentResponseRiskScoreMax),
+  "riskSignals": zod.array(zod.object({
+  "code": zod.enum(['route_deviation', 'unexpected_stop', 'contextual_location', 'safety_request', 'manual_sos', 'no_response', 'multiple_requests', 'unusual_journey']),
+  "label": zod.string(),
+  "points": zod.number().int()
+})),
   "latitude": zod.number(),
   "longitude": zod.number(),
   "detectedAt": zod.coerce.date(),
-  "verificationStatus": zod.enum(['not_started', 'pending', 'confirmed_safe', 'help_requested', 'no_response']),
+  "verificationStatus": zod.enum(['not_started', 'pending', 'confirmed_safe', 'help_requested', 'no_response', 'reported', 'under_verification', 'verified', 'unconfirmed', 'resolved']),
   "responseStatus": zod.enum(['open', 'verification_pending', 'responder_assigned', 'help_reached', 'resolved']),
   "resolvedAt": zod.coerce.date().nullable(),
   "destination": zod.string().nullable(),
+  "contextType": zod.enum(['campus', 'public_space']),
+  "campusZoneId": zod.number().int().nullable(),
+  "campusZoneName": zod.string().nullable(),
+  "locationLabel": zod.string().nullable(),
+  "detectionMode": zod.enum(['journey_signal', 'new_incident_no_history', 'user_safety_request', 'manual_sos', 'campus_report']),
+  "historicalReportsAvailable": zod.boolean().nullable(),
+  "lastSafeLocation": zod.union([zod.object({
+  "latitude": zod.number(),
+  "longitude": zod.number(),
+  "label": zod.string().optional(),
+  "recordedAt": zod.coerce.date(),
+  "journeyId": zod.number().int()
+}),zod.null()]),
+  "assignedResponderId": zod.number().int().nullable(),
+  "assignedResponderType": zod.string().nullable(),
   "victim": zod.union([zod.object({
   "name": zod.string(),
   "phone": zod.string().nullable()
@@ -537,19 +579,45 @@ export const CreateIncidentResponse = zod.object({
  * Authority users see authorized incident records; responders receive actionable details without victim identity; trusted contacts only see shared incidents.
  * @summary List incidents the caller is authorized to see
  */
+export const getActiveIncidentsResponseIncidentsItemRiskScoreMin = 0;
+export const getActiveIncidentsResponseIncidentsItemRiskScoreMax = 100;
+
+
+
 export const GetActiveIncidentsResponse = zod.object({
   "incidents": zod.array(zod.object({
   "id": zod.number().int(),
   "journeyId": zod.number().int().nullable(),
-  "incidentType": zod.enum(['route_deviation', 'unexpected_stop', 'user_request', 'no_response', 'manual_report']),
+  "incidentType": zod.enum(['route_deviation', 'unexpected_stop', 'user_request', 'no_response', 'manual_report', 'user_feels_unsafe', 'being_followed', 'being_surrounded', 'manual_sos', 'new_incident']),
   "riskLevel": zod.enum(['low', 'medium', 'high', 'critical']),
+  "riskScore": zod.number().int().min(getActiveIncidentsResponseIncidentsItemRiskScoreMin).max(getActiveIncidentsResponseIncidentsItemRiskScoreMax),
+  "riskSignals": zod.array(zod.object({
+  "code": zod.enum(['route_deviation', 'unexpected_stop', 'contextual_location', 'safety_request', 'manual_sos', 'no_response', 'multiple_requests', 'unusual_journey']),
+  "label": zod.string(),
+  "points": zod.number().int()
+})),
   "latitude": zod.number(),
   "longitude": zod.number(),
   "detectedAt": zod.coerce.date(),
-  "verificationStatus": zod.enum(['not_started', 'pending', 'confirmed_safe', 'help_requested', 'no_response']),
+  "verificationStatus": zod.enum(['not_started', 'pending', 'confirmed_safe', 'help_requested', 'no_response', 'reported', 'under_verification', 'verified', 'unconfirmed', 'resolved']),
   "responseStatus": zod.enum(['open', 'verification_pending', 'responder_assigned', 'help_reached', 'resolved']),
   "resolvedAt": zod.coerce.date().nullable(),
   "destination": zod.string().nullable(),
+  "contextType": zod.enum(['campus', 'public_space']),
+  "campusZoneId": zod.number().int().nullable(),
+  "campusZoneName": zod.string().nullable(),
+  "locationLabel": zod.string().nullable(),
+  "detectionMode": zod.enum(['journey_signal', 'new_incident_no_history', 'user_safety_request', 'manual_sos', 'campus_report']),
+  "historicalReportsAvailable": zod.boolean().nullable(),
+  "lastSafeLocation": zod.union([zod.object({
+  "latitude": zod.number(),
+  "longitude": zod.number(),
+  "label": zod.string().optional(),
+  "recordedAt": zod.coerce.date(),
+  "journeyId": zod.number().int()
+}),zod.null()]),
+  "assignedResponderId": zod.number().int().nullable(),
+  "assignedResponderType": zod.string().nullable(),
   "victim": zod.union([zod.object({
   "name": zod.string(),
   "phone": zod.string().nullable()
@@ -576,18 +644,44 @@ export const AcceptIncidentParams = zod.object({
   "incidentId": zod.coerce.number().int().min(1)
 })
 
+export const acceptIncidentResponseRiskScoreMin = 0;
+export const acceptIncidentResponseRiskScoreMax = 100;
+
+
+
 export const AcceptIncidentResponse = zod.object({
   "id": zod.number().int(),
   "journeyId": zod.number().int().nullable(),
-  "incidentType": zod.enum(['route_deviation', 'unexpected_stop', 'user_request', 'no_response', 'manual_report']),
+  "incidentType": zod.enum(['route_deviation', 'unexpected_stop', 'user_request', 'no_response', 'manual_report', 'user_feels_unsafe', 'being_followed', 'being_surrounded', 'manual_sos', 'new_incident']),
   "riskLevel": zod.enum(['low', 'medium', 'high', 'critical']),
+  "riskScore": zod.number().int().min(acceptIncidentResponseRiskScoreMin).max(acceptIncidentResponseRiskScoreMax),
+  "riskSignals": zod.array(zod.object({
+  "code": zod.enum(['route_deviation', 'unexpected_stop', 'contextual_location', 'safety_request', 'manual_sos', 'no_response', 'multiple_requests', 'unusual_journey']),
+  "label": zod.string(),
+  "points": zod.number().int()
+})),
   "latitude": zod.number(),
   "longitude": zod.number(),
   "detectedAt": zod.coerce.date(),
-  "verificationStatus": zod.enum(['not_started', 'pending', 'confirmed_safe', 'help_requested', 'no_response']),
+  "verificationStatus": zod.enum(['not_started', 'pending', 'confirmed_safe', 'help_requested', 'no_response', 'reported', 'under_verification', 'verified', 'unconfirmed', 'resolved']),
   "responseStatus": zod.enum(['open', 'verification_pending', 'responder_assigned', 'help_reached', 'resolved']),
   "resolvedAt": zod.coerce.date().nullable(),
   "destination": zod.string().nullable(),
+  "contextType": zod.enum(['campus', 'public_space']),
+  "campusZoneId": zod.number().int().nullable(),
+  "campusZoneName": zod.string().nullable(),
+  "locationLabel": zod.string().nullable(),
+  "detectionMode": zod.enum(['journey_signal', 'new_incident_no_history', 'user_safety_request', 'manual_sos', 'campus_report']),
+  "historicalReportsAvailable": zod.boolean().nullable(),
+  "lastSafeLocation": zod.union([zod.object({
+  "latitude": zod.number(),
+  "longitude": zod.number(),
+  "label": zod.string().optional(),
+  "recordedAt": zod.coerce.date(),
+  "journeyId": zod.number().int()
+}),zod.null()]),
+  "assignedResponderId": zod.number().int().nullable(),
+  "assignedResponderType": zod.string().nullable(),
   "victim": zod.union([zod.object({
   "name": zod.string(),
   "phone": zod.string().nullable()
@@ -614,7 +708,7 @@ export const CreateResponseEventParams = zod.object({
 })
 
 export const CreateResponseEventBody = zod.object({
-  "eventType": zod.enum(['journey_started', 'route_deviation_detected', 'unexpected_stop_detected', 'verification_requested', 'user_confirmed_safe', 'user_requested_help', 'contact_acknowledged', 'responder_accepted', 'help_reached', 'incident_resolved', 'status_updated']),
+  "eventType": zod.enum(['journey_started', 'route_deviation_detected', 'unexpected_stop_detected', 'verification_requested', 'user_confirmed_safe', 'user_requested_help', 'contact_acknowledged', 'responder_accepted', 'help_reached', 'incident_resolved', 'status_updated', 'safety_request_received', 'manual_sos_triggered', 'new_incident_detected', 'trusted_contact_notification_simulated', 'responder_notification_simulated', 'risk_assessment_completed', 'incident_verification_updated', 'anonymous_nearby_response', 'evidence_metadata_saved']),
   "details": zod.record(zod.string(), zod.unknown()).optional()
 })
 
@@ -642,18 +736,44 @@ export const ResolveIncidentBody = zod.object({
   "details": zod.record(zod.string(), zod.unknown()).optional()
 })
 
+export const resolveIncidentResponseRiskScoreMin = 0;
+export const resolveIncidentResponseRiskScoreMax = 100;
+
+
+
 export const ResolveIncidentResponse = zod.object({
   "id": zod.number().int(),
   "journeyId": zod.number().int().nullable(),
-  "incidentType": zod.enum(['route_deviation', 'unexpected_stop', 'user_request', 'no_response', 'manual_report']),
+  "incidentType": zod.enum(['route_deviation', 'unexpected_stop', 'user_request', 'no_response', 'manual_report', 'user_feels_unsafe', 'being_followed', 'being_surrounded', 'manual_sos', 'new_incident']),
   "riskLevel": zod.enum(['low', 'medium', 'high', 'critical']),
+  "riskScore": zod.number().int().min(resolveIncidentResponseRiskScoreMin).max(resolveIncidentResponseRiskScoreMax),
+  "riskSignals": zod.array(zod.object({
+  "code": zod.enum(['route_deviation', 'unexpected_stop', 'contextual_location', 'safety_request', 'manual_sos', 'no_response', 'multiple_requests', 'unusual_journey']),
+  "label": zod.string(),
+  "points": zod.number().int()
+})),
   "latitude": zod.number(),
   "longitude": zod.number(),
   "detectedAt": zod.coerce.date(),
-  "verificationStatus": zod.enum(['not_started', 'pending', 'confirmed_safe', 'help_requested', 'no_response']),
+  "verificationStatus": zod.enum(['not_started', 'pending', 'confirmed_safe', 'help_requested', 'no_response', 'reported', 'under_verification', 'verified', 'unconfirmed', 'resolved']),
   "responseStatus": zod.enum(['open', 'verification_pending', 'responder_assigned', 'help_reached', 'resolved']),
   "resolvedAt": zod.coerce.date().nullable(),
   "destination": zod.string().nullable(),
+  "contextType": zod.enum(['campus', 'public_space']),
+  "campusZoneId": zod.number().int().nullable(),
+  "campusZoneName": zod.string().nullable(),
+  "locationLabel": zod.string().nullable(),
+  "detectionMode": zod.enum(['journey_signal', 'new_incident_no_history', 'user_safety_request', 'manual_sos', 'campus_report']),
+  "historicalReportsAvailable": zod.boolean().nullable(),
+  "lastSafeLocation": zod.union([zod.object({
+  "latitude": zod.number(),
+  "longitude": zod.number(),
+  "label": zod.string().optional(),
+  "recordedAt": zod.coerce.date(),
+  "journeyId": zod.number().int()
+}),zod.null()]),
+  "assignedResponderId": zod.number().int().nullable(),
+  "assignedResponderType": zod.string().nullable(),
   "victim": zod.union([zod.object({
   "name": zod.string(),
   "phone": zod.string().nullable()
@@ -779,6 +899,376 @@ export const UpdateResponderStatusResponse = zod.object({
   "label": zod.string().max(updateResponderStatusResponseCurrentLocationOneLabelMax).optional()
 }),zod.null()]),
   "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Get synthetic campus zones and privacy-safe local safety context
+ */
+export const GetCampusOverviewResponse = zod.object({
+  "zones": zod.array(zod.object({
+  "id": zod.number().int(),
+  "slug": zod.string(),
+  "campusName": zod.string(),
+  "name": zod.string(),
+  "zoneType": zod.enum(['girls_hostel', 'academic_block', 'parking_area', 'campus_gate', 'isolated_pathway', 'construction_zone', 'common_area', 'other']),
+  "assistanceStatus": zod.enum(['available', 'limited', 'unknown']),
+  "contextNote": zod.string(),
+  "latitude": zod.number(),
+  "longitude": zod.number(),
+  "activeIncidentCount": zod.number().int(),
+  "verifiedHistoricalReportCount": zod.number().int()
+})),
+  "activeIncidents": zod.array(zod.object({
+  "id": zod.number().int(),
+  "campusZoneId": zod.number().int(),
+  "zoneName": zod.string(),
+  "incidentType": zod.enum(['route_deviation', 'unexpected_stop', 'user_request', 'no_response', 'manual_report', 'user_feels_unsafe', 'being_followed', 'being_surrounded', 'manual_sos', 'new_incident']),
+  "riskLevel": zod.enum(['low', 'medium', 'high', 'critical']),
+  "verificationStatus": zod.enum(['not_started', 'pending', 'confirmed_safe', 'help_requested', 'no_response', 'reported', 'under_verification', 'verified', 'unconfirmed', 'resolved']),
+  "responseStatus": zod.enum(['open', 'verification_pending', 'responder_assigned', 'help_reached', 'resolved']),
+  "detectedAt": zod.coerce.date(),
+  "locationLabel": zod.string().nullable()
+})),
+  "availableResponders": zod.number().int(),
+  "checkedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List campus reports visible to the caller
+ */
+export const GetCampusReportsResponse = zod.object({
+  "reports": zod.array(zod.object({
+  "id": zod.number().int(),
+  "campusZoneId": zod.number().int().nullable(),
+  "zoneName": zod.string().nullable(),
+  "reportType": zod.enum(['safety_concern', 'suspicious_activity', 'harassment_concern', 'unsafe_area', 'infrastructure_safety', 'other']),
+  "details": zod.string(),
+  "locationNote": zod.string().nullable(),
+  "status": zod.enum(['reported', 'under_verification', 'verified', 'unconfirmed', 'resolved']),
+  "reviewNote": zod.string().nullable(),
+  "reporterName": zod.string().nullable(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Submit a synthetic campus safety report
+ */
+
+export const createCampusReportBodyDetailsMin = 8;
+export const createCampusReportBodyDetailsMax = 2000;
+
+export const createCampusReportBodyLocationNoteMax = 200;
+
+
+
+export const CreateCampusReportBody = zod.object({
+  "campusZoneId": zod.number().int().min(1).nullish(),
+  "reportType": zod.enum(['safety_concern', 'suspicious_activity', 'harassment_concern', 'unsafe_area', 'infrastructure_safety', 'other']),
+  "details": zod.string().min(createCampusReportBodyDetailsMin).max(createCampusReportBodyDetailsMax),
+  "locationNote": zod.string().max(createCampusReportBodyLocationNoteMax).nullish()
+})
+
+export const CreateCampusReportResponse = zod.object({
+  "id": zod.number().int(),
+  "campusZoneId": zod.number().int().nullable(),
+  "zoneName": zod.string().nullable(),
+  "reportType": zod.enum(['safety_concern', 'suspicious_activity', 'harassment_concern', 'unsafe_area', 'infrastructure_safety', 'other']),
+  "details": zod.string(),
+  "locationNote": zod.string().nullable(),
+  "status": zod.enum(['reported', 'under_verification', 'verified', 'unconfirmed', 'resolved']),
+  "reviewNote": zod.string().nullable(),
+  "reporterName": zod.string().nullable(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Review and update a campus report as an authority user
+ */
+
+
+
+export const UpdateCampusReportVerificationParams = zod.object({
+  "reportId": zod.coerce.number().int().min(1)
+})
+
+export const updateCampusReportVerificationBodyReviewNoteMax = 1000;
+
+
+
+export const UpdateCampusReportVerificationBody = zod.object({
+  "status": zod.enum(['reported', 'under_verification', 'verified', 'unconfirmed', 'resolved']),
+  "reviewNote": zod.string().max(updateCampusReportVerificationBodyReviewNoteMax).nullish()
+})
+
+export const UpdateCampusReportVerificationResponse = zod.object({
+  "id": zod.number().int(),
+  "campusZoneId": zod.number().int().nullable(),
+  "zoneName": zod.string().nullable(),
+  "reportType": zod.enum(['safety_concern', 'suspicious_activity', 'harassment_concern', 'unsafe_area', 'infrastructure_safety', 'other']),
+  "details": zod.string(),
+  "locationNote": zod.string().nullable(),
+  "status": zod.enum(['reported', 'under_verification', 'verified', 'unconfirmed', 'resolved']),
+  "reviewNote": zod.string().nullable(),
+  "reporterName": zod.string().nullable(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List active and resolved incidents for the authority review board
+ */
+export const getAuthorityIncidentsResponseIncidentsItemRiskScoreMin = 0;
+export const getAuthorityIncidentsResponseIncidentsItemRiskScoreMax = 100;
+
+
+
+export const GetAuthorityIncidentsResponse = zod.object({
+  "incidents": zod.array(zod.object({
+  "id": zod.number().int(),
+  "journeyId": zod.number().int().nullable(),
+  "incidentType": zod.enum(['route_deviation', 'unexpected_stop', 'user_request', 'no_response', 'manual_report', 'user_feels_unsafe', 'being_followed', 'being_surrounded', 'manual_sos', 'new_incident']),
+  "riskLevel": zod.enum(['low', 'medium', 'high', 'critical']),
+  "riskScore": zod.number().int().min(getAuthorityIncidentsResponseIncidentsItemRiskScoreMin).max(getAuthorityIncidentsResponseIncidentsItemRiskScoreMax),
+  "riskSignals": zod.array(zod.object({
+  "code": zod.enum(['route_deviation', 'unexpected_stop', 'contextual_location', 'safety_request', 'manual_sos', 'no_response', 'multiple_requests', 'unusual_journey']),
+  "label": zod.string(),
+  "points": zod.number().int()
+})),
+  "latitude": zod.number(),
+  "longitude": zod.number(),
+  "detectedAt": zod.coerce.date(),
+  "verificationStatus": zod.enum(['not_started', 'pending', 'confirmed_safe', 'help_requested', 'no_response', 'reported', 'under_verification', 'verified', 'unconfirmed', 'resolved']),
+  "responseStatus": zod.enum(['open', 'verification_pending', 'responder_assigned', 'help_reached', 'resolved']),
+  "resolvedAt": zod.coerce.date().nullable(),
+  "destination": zod.string().nullable(),
+  "contextType": zod.enum(['campus', 'public_space']),
+  "campusZoneId": zod.number().int().nullable(),
+  "campusZoneName": zod.string().nullable(),
+  "locationLabel": zod.string().nullable(),
+  "detectionMode": zod.enum(['journey_signal', 'new_incident_no_history', 'user_safety_request', 'manual_sos', 'campus_report']),
+  "historicalReportsAvailable": zod.boolean().nullable(),
+  "lastSafeLocation": zod.union([zod.object({
+  "latitude": zod.number(),
+  "longitude": zod.number(),
+  "label": zod.string().optional(),
+  "recordedAt": zod.coerce.date(),
+  "journeyId": zod.number().int()
+}),zod.null()]),
+  "assignedResponderId": zod.number().int().nullable(),
+  "assignedResponderType": zod.string().nullable(),
+  "victim": zod.union([zod.object({
+  "name": zod.string(),
+  "phone": zod.string().nullable()
+}).describe('Returned only to the owner, their verified and authorized contact, or an authority user.'),zod.null()]),
+  "events": zod.array(zod.object({
+  "id": zod.number().int(),
+  "incidentId": zod.number().int(),
+  "eventType": zod.string(),
+  "actorId": zod.number().int().nullable(),
+  "timestamp": zod.coerce.date(),
+  "details": zod.record(zod.string(), zod.unknown())
+}))
+}))
+})
+
+
+/**
+ * @summary Update incident verification state as an authority user
+ */
+
+
+
+export const UpdateIncidentVerificationParams = zod.object({
+  "incidentId": zod.coerce.number().int().min(1)
+})
+
+export const updateIncidentVerificationBodyNoteMax = 1000;
+
+
+
+export const UpdateIncidentVerificationBody = zod.object({
+  "status": zod.enum(['under_verification', 'verified', 'unconfirmed']),
+  "note": zod.string().max(updateIncidentVerificationBodyNoteMax).nullish()
+})
+
+export const updateIncidentVerificationResponseRiskScoreMin = 0;
+export const updateIncidentVerificationResponseRiskScoreMax = 100;
+
+
+
+export const UpdateIncidentVerificationResponse = zod.object({
+  "id": zod.number().int(),
+  "journeyId": zod.number().int().nullable(),
+  "incidentType": zod.enum(['route_deviation', 'unexpected_stop', 'user_request', 'no_response', 'manual_report', 'user_feels_unsafe', 'being_followed', 'being_surrounded', 'manual_sos', 'new_incident']),
+  "riskLevel": zod.enum(['low', 'medium', 'high', 'critical']),
+  "riskScore": zod.number().int().min(updateIncidentVerificationResponseRiskScoreMin).max(updateIncidentVerificationResponseRiskScoreMax),
+  "riskSignals": zod.array(zod.object({
+  "code": zod.enum(['route_deviation', 'unexpected_stop', 'contextual_location', 'safety_request', 'manual_sos', 'no_response', 'multiple_requests', 'unusual_journey']),
+  "label": zod.string(),
+  "points": zod.number().int()
+})),
+  "latitude": zod.number(),
+  "longitude": zod.number(),
+  "detectedAt": zod.coerce.date(),
+  "verificationStatus": zod.enum(['not_started', 'pending', 'confirmed_safe', 'help_requested', 'no_response', 'reported', 'under_verification', 'verified', 'unconfirmed', 'resolved']),
+  "responseStatus": zod.enum(['open', 'verification_pending', 'responder_assigned', 'help_reached', 'resolved']),
+  "resolvedAt": zod.coerce.date().nullable(),
+  "destination": zod.string().nullable(),
+  "contextType": zod.enum(['campus', 'public_space']),
+  "campusZoneId": zod.number().int().nullable(),
+  "campusZoneName": zod.string().nullable(),
+  "locationLabel": zod.string().nullable(),
+  "detectionMode": zod.enum(['journey_signal', 'new_incident_no_history', 'user_safety_request', 'manual_sos', 'campus_report']),
+  "historicalReportsAvailable": zod.boolean().nullable(),
+  "lastSafeLocation": zod.union([zod.object({
+  "latitude": zod.number(),
+  "longitude": zod.number(),
+  "label": zod.string().optional(),
+  "recordedAt": zod.coerce.date(),
+  "journeyId": zod.number().int()
+}),zod.null()]),
+  "assignedResponderId": zod.number().int().nullable(),
+  "assignedResponderType": zod.string().nullable(),
+  "victim": zod.union([zod.object({
+  "name": zod.string(),
+  "phone": zod.string().nullable()
+}).describe('Returned only to the owner, their verified and authorized contact, or an authority user.'),zod.null()]),
+  "events": zod.array(zod.object({
+  "id": zod.number().int(),
+  "incidentId": zod.number().int(),
+  "eventType": zod.string(),
+  "actorId": zod.number().int().nullable(),
+  "timestamp": zod.coerce.date(),
+  "details": zod.record(zod.string(), zod.unknown())
+}))
+})
+
+
+/**
+ * @summary List private evidence metadata for the owner or authority
+ */
+
+
+
+export const GetIncidentEvidenceParams = zod.object({
+  "incidentId": zod.coerce.number().int().min(1)
+})
+
+export const getIncidentEvidenceResponseEvidenceItemLocationOneLatitudeMin = -90;
+export const getIncidentEvidenceResponseEvidenceItemLocationOneLatitudeMax = 90;
+
+export const getIncidentEvidenceResponseEvidenceItemLocationOneLongitudeMin = -180;
+export const getIncidentEvidenceResponseEvidenceItemLocationOneLongitudeMax = 180;
+
+export const getIncidentEvidenceResponseEvidenceItemLocationOneLabelMax = 200;
+
+
+
+export const GetIncidentEvidenceResponse = zod.object({
+  "evidence": zod.array(zod.object({
+  "id": zod.number().int(),
+  "incidentId": zod.number().int(),
+  "evidenceType": zod.enum(['photo', 'video', 'audio', 'description']),
+  "description": zod.string(),
+  "fileLabel": zod.string().nullable(),
+  "location": zod.union([zod.object({
+  "latitude": zod.number().min(getIncidentEvidenceResponseEvidenceItemLocationOneLatitudeMin).max(getIncidentEvidenceResponseEvidenceItemLocationOneLatitudeMax),
+  "longitude": zod.number().min(getIncidentEvidenceResponseEvidenceItemLocationOneLongitudeMin).max(getIncidentEvidenceResponseEvidenceItemLocationOneLongitudeMax),
+  "label": zod.string().max(getIncidentEvidenceResponseEvidenceItemLocationOneLabelMax).optional()
+}),zod.null()]),
+  "recordedAt": zod.coerce.date(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Save a private synthetic evidence entry for the incident owner
+ */
+
+
+
+export const CreateIncidentEvidenceParams = zod.object({
+  "incidentId": zod.coerce.number().int().min(1)
+})
+
+export const createIncidentEvidenceBodyDescriptionMin = 3;
+export const createIncidentEvidenceBodyDescriptionMax = 2000;
+
+export const createIncidentEvidenceBodyFileLabelMax = 200;
+
+export const createIncidentEvidenceBodyLocationOneLatitudeMin = -90;
+export const createIncidentEvidenceBodyLocationOneLatitudeMax = 90;
+
+export const createIncidentEvidenceBodyLocationOneLongitudeMin = -180;
+export const createIncidentEvidenceBodyLocationOneLongitudeMax = 180;
+
+export const createIncidentEvidenceBodyLocationOneLabelMax = 200;
+
+
+
+export const CreateIncidentEvidenceBody = zod.object({
+  "evidenceType": zod.enum(['photo', 'video', 'audio', 'description']),
+  "description": zod.string().min(createIncidentEvidenceBodyDescriptionMin).max(createIncidentEvidenceBodyDescriptionMax),
+  "fileLabel": zod.string().max(createIncidentEvidenceBodyFileLabelMax).nullish(),
+  "location": zod.union([zod.object({
+  "latitude": zod.number().min(createIncidentEvidenceBodyLocationOneLatitudeMin).max(createIncidentEvidenceBodyLocationOneLatitudeMax),
+  "longitude": zod.number().min(createIncidentEvidenceBodyLocationOneLongitudeMin).max(createIncidentEvidenceBodyLocationOneLongitudeMax),
+  "label": zod.string().max(createIncidentEvidenceBodyLocationOneLabelMax).optional()
+}),zod.null()]).optional()
+})
+
+export const createIncidentEvidenceResponseLocationOneLatitudeMin = -90;
+export const createIncidentEvidenceResponseLocationOneLatitudeMax = 90;
+
+export const createIncidentEvidenceResponseLocationOneLongitudeMin = -180;
+export const createIncidentEvidenceResponseLocationOneLongitudeMax = 180;
+
+export const createIncidentEvidenceResponseLocationOneLabelMax = 200;
+
+
+
+export const CreateIncidentEvidenceResponse = zod.object({
+  "id": zod.number().int(),
+  "incidentId": zod.number().int(),
+  "evidenceType": zod.enum(['photo', 'video', 'audio', 'description']),
+  "description": zod.string(),
+  "fileLabel": zod.string().nullable(),
+  "location": zod.union([zod.object({
+  "latitude": zod.number().min(createIncidentEvidenceResponseLocationOneLatitudeMin).max(createIncidentEvidenceResponseLocationOneLatitudeMax),
+  "longitude": zod.number().min(createIncidentEvidenceResponseLocationOneLongitudeMin).max(createIncidentEvidenceResponseLocationOneLongitudeMax),
+  "label": zod.string().max(createIncidentEvidenceResponseLocationOneLabelMax).optional()
+}),zod.null()]),
+  "recordedAt": zod.coerce.date(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Record an anonymous demo response to a nearby safety request
+ */
+
+
+
+export const RespondToNearbySafetyRequestParams = zod.object({
+  "incidentId": zod.coerce.number().int().min(1)
+})
+
+export const RespondToNearbySafetyRequestBody = zod.object({
+  "response": zod.enum(['can_help', 'not_available'])
+})
+
+export const RespondToNearbySafetyRequestResponse = zod.object({
+  "acknowledged": zod.boolean(),
+  "message": zod.string()
 })
 
 

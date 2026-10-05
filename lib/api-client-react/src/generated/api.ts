@@ -24,19 +24,30 @@ import type {
   ActiveJourneyResponse,
   AuthSession,
   AvailableRespondersResponse,
+  CampusOverviewResponse,
+  CampusReport,
+  CampusReportInput,
+  CampusReportReview,
+  CampusReportsResponse,
   DemoSeedResult,
   EmergencyContact,
   EmergencyContactInput,
   EmergencyContactsResponse,
   ForbiddenResponse,
   HealthStatus,
+  IncidentEvidence,
+  IncidentEvidenceInput,
+  IncidentEvidenceResponse,
   IncidentInput,
+  IncidentVerificationUpdate,
   IncidentView,
   Journey,
   JourneyInput,
   JourneyLocationUpdate,
   JourneySharingUpdate,
   JourneyStatusUpdate,
+  NearbyAssistanceInput,
+  NearbyAssistanceResponse,
   ResolveIncidentInput,
   Responder,
   ResponderInput,
@@ -1659,5 +1670,757 @@ export const useUpdateResponderStatus = <TError = ErrorType<ForbiddenResponse>,
         TContext
       > => {
       return useMutation(getUpdateResponderStatusMutationOptions(options));
+    }
+
+export const getGetCampusOverviewUrl = () => {
+
+
+
+
+  return `/api/campus/overview`
+}
+
+/**
+ * @summary Get synthetic campus zones and privacy-safe local safety context
+ */
+export const getCampusOverview = async ( options?: Parameters<typeof customFetch>[1]): Promise<CampusOverviewResponse> => {
+
+  return customFetch<CampusOverviewResponse>(getGetCampusOverviewUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCampusOverviewQueryKey = () => {
+    return [
+    `/api/campus/overview`
+    ] as const;
+    }
+
+
+export const getGetCampusOverviewQueryOptions = <TData = Awaited<ReturnType<typeof getCampusOverview>>, TError = ErrorType<UnauthorizedResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCampusOverview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCampusOverviewQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCampusOverview>>> = ({ signal }) => getCampusOverview({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCampusOverview>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCampusOverviewQueryResult = NonNullable<Awaited<ReturnType<typeof getCampusOverview>>>
+export type GetCampusOverviewQueryError = ErrorType<UnauthorizedResponse>
+
+
+/**
+ * @summary Get synthetic campus zones and privacy-safe local safety context
+ */
+
+export function useGetCampusOverview<TData = Awaited<ReturnType<typeof getCampusOverview>>, TError = ErrorType<UnauthorizedResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCampusOverview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCampusOverviewQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetCampusReportsUrl = () => {
+
+
+
+
+  return `/api/campus/reports`
+}
+
+/**
+ * @summary List campus reports visible to the caller
+ */
+export const getCampusReports = async ( options?: Parameters<typeof customFetch>[1]): Promise<CampusReportsResponse> => {
+
+  return customFetch<CampusReportsResponse>(getGetCampusReportsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCampusReportsQueryKey = () => {
+    return [
+    `/api/campus/reports`
+    ] as const;
+    }
+
+
+export const getGetCampusReportsQueryOptions = <TData = Awaited<ReturnType<typeof getCampusReports>>, TError = ErrorType<UnauthorizedResponse | ForbiddenResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCampusReports>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCampusReportsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCampusReports>>> = ({ signal }) => getCampusReports({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCampusReports>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCampusReportsQueryResult = NonNullable<Awaited<ReturnType<typeof getCampusReports>>>
+export type GetCampusReportsQueryError = ErrorType<UnauthorizedResponse | ForbiddenResponse>
+
+
+/**
+ * @summary List campus reports visible to the caller
+ */
+
+export function useGetCampusReports<TData = Awaited<ReturnType<typeof getCampusReports>>, TError = ErrorType<UnauthorizedResponse | ForbiddenResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCampusReports>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCampusReportsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateCampusReportUrl = () => {
+
+
+
+
+  return `/api/campus/reports`
+}
+
+/**
+ * @summary Submit a synthetic campus safety report
+ */
+export const createCampusReport = async (campusReportInput: CampusReportInput, options?: Parameters<typeof customFetch>[1]): Promise<CampusReport> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CampusReport>(getCreateCampusReportUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(campusReportInput)
+  }
+);}
+
+
+
+
+
+export const getCreateCampusReportMutationKey = () => ['createCampusReport'] as const;
+
+export const getCreateCampusReportMutationOptions = <TError = ErrorType<UnauthorizedResponse | ForbiddenResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCampusReport>>, TError,CreateCampusReportMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCampusReport>>, TError,CreateCampusReportMutationVariables, TContext> => {
+
+const mutationKey = getCreateCampusReportMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCampusReport>>, CreateCampusReportMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCampusReport(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCampusReportMutationResult = NonNullable<Awaited<ReturnType<typeof createCampusReport>>>
+    export type CreateCampusReportMutationBody = BodyType<CampusReportInput>
+    export type CreateCampusReportMutationError = ErrorType<UnauthorizedResponse | ForbiddenResponse>
+    export type CreateCampusReportMutationVariables = {data: BodyType<CampusReportInput>}
+
+    /**
+ * @summary Submit a synthetic campus safety report
+ */
+export const useCreateCampusReport = <TError = ErrorType<UnauthorizedResponse | ForbiddenResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCampusReport>>, TError,CreateCampusReportMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCampusReport>>,
+        TError,
+        CreateCampusReportMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateCampusReportMutationOptions(options));
+    }
+
+export const getUpdateCampusReportVerificationUrl = (reportId: number,) => {
+
+
+
+
+  return `/api/campus/reports/${reportId}/verification`
+}
+
+/**
+ * @summary Review and update a campus report as an authority user
+ */
+export const updateCampusReportVerification = async (reportId: number,
+    campusReportReview: CampusReportReview, options?: Parameters<typeof customFetch>[1]): Promise<CampusReport> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CampusReport>(getUpdateCampusReportVerificationUrl(reportId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(campusReportReview)
+  }
+);}
+
+
+
+
+
+export const getUpdateCampusReportVerificationMutationKey = () => ['updateCampusReportVerification'] as const;
+
+export const getUpdateCampusReportVerificationMutationOptions = <TError = ErrorType<ForbiddenResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCampusReportVerification>>, TError,UpdateCampusReportVerificationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCampusReportVerification>>, TError,UpdateCampusReportVerificationMutationVariables, TContext> => {
+
+const mutationKey = getUpdateCampusReportVerificationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCampusReportVerification>>, UpdateCampusReportVerificationMutationVariables> = (props) => {
+          const {reportId,data} = props ?? {};
+
+          return  updateCampusReportVerification(reportId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCampusReportVerificationMutationResult = NonNullable<Awaited<ReturnType<typeof updateCampusReportVerification>>>
+    export type UpdateCampusReportVerificationMutationBody = BodyType<CampusReportReview>
+    export type UpdateCampusReportVerificationMutationError = ErrorType<ForbiddenResponse>
+    export type UpdateCampusReportVerificationMutationVariables = {reportId: number;data: BodyType<CampusReportReview>}
+
+    /**
+ * @summary Review and update a campus report as an authority user
+ */
+export const useUpdateCampusReportVerification = <TError = ErrorType<ForbiddenResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCampusReportVerification>>, TError,UpdateCampusReportVerificationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCampusReportVerification>>,
+        TError,
+        UpdateCampusReportVerificationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateCampusReportVerificationMutationOptions(options));
+    }
+
+export const getGetAuthorityIncidentsUrl = () => {
+
+
+
+
+  return `/api/authority/incidents`
+}
+
+/**
+ * @summary List active and resolved incidents for the authority review board
+ */
+export const getAuthorityIncidents = async ( options?: Parameters<typeof customFetch>[1]): Promise<ActiveIncidentsResponse> => {
+
+  return customFetch<ActiveIncidentsResponse>(getGetAuthorityIncidentsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAuthorityIncidentsQueryKey = () => {
+    return [
+    `/api/authority/incidents`
+    ] as const;
+    }
+
+
+export const getGetAuthorityIncidentsQueryOptions = <TData = Awaited<ReturnType<typeof getAuthorityIncidents>>, TError = ErrorType<ForbiddenResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAuthorityIncidents>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAuthorityIncidentsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAuthorityIncidents>>> = ({ signal }) => getAuthorityIncidents({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAuthorityIncidents>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAuthorityIncidentsQueryResult = NonNullable<Awaited<ReturnType<typeof getAuthorityIncidents>>>
+export type GetAuthorityIncidentsQueryError = ErrorType<ForbiddenResponse>
+
+
+/**
+ * @summary List active and resolved incidents for the authority review board
+ */
+
+export function useGetAuthorityIncidents<TData = Awaited<ReturnType<typeof getAuthorityIncidents>>, TError = ErrorType<ForbiddenResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAuthorityIncidents>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAuthorityIncidentsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateIncidentVerificationUrl = (incidentId: number,) => {
+
+
+
+
+  return `/api/incidents/${incidentId}/verification`
+}
+
+/**
+ * @summary Update incident verification state as an authority user
+ */
+export const updateIncidentVerification = async (incidentId: number,
+    incidentVerificationUpdate: IncidentVerificationUpdate, options?: Parameters<typeof customFetch>[1]): Promise<IncidentView> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<IncidentView>(getUpdateIncidentVerificationUrl(incidentId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(incidentVerificationUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdateIncidentVerificationMutationKey = () => ['updateIncidentVerification'] as const;
+
+export const getUpdateIncidentVerificationMutationOptions = <TError = ErrorType<ForbiddenResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateIncidentVerification>>, TError,UpdateIncidentVerificationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateIncidentVerification>>, TError,UpdateIncidentVerificationMutationVariables, TContext> => {
+
+const mutationKey = getUpdateIncidentVerificationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateIncidentVerification>>, UpdateIncidentVerificationMutationVariables> = (props) => {
+          const {incidentId,data} = props ?? {};
+
+          return  updateIncidentVerification(incidentId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateIncidentVerificationMutationResult = NonNullable<Awaited<ReturnType<typeof updateIncidentVerification>>>
+    export type UpdateIncidentVerificationMutationBody = BodyType<IncidentVerificationUpdate>
+    export type UpdateIncidentVerificationMutationError = ErrorType<ForbiddenResponse>
+    export type UpdateIncidentVerificationMutationVariables = {incidentId: number;data: BodyType<IncidentVerificationUpdate>}
+
+    /**
+ * @summary Update incident verification state as an authority user
+ */
+export const useUpdateIncidentVerification = <TError = ErrorType<ForbiddenResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateIncidentVerification>>, TError,UpdateIncidentVerificationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateIncidentVerification>>,
+        TError,
+        UpdateIncidentVerificationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateIncidentVerificationMutationOptions(options));
+    }
+
+export const getGetIncidentEvidenceUrl = (incidentId: number,) => {
+
+
+
+
+  return `/api/incidents/${incidentId}/evidence`
+}
+
+/**
+ * @summary List private evidence metadata for the owner or authority
+ */
+export const getIncidentEvidence = async (incidentId: number, options?: Parameters<typeof customFetch>[1]): Promise<IncidentEvidenceResponse> => {
+
+  return customFetch<IncidentEvidenceResponse>(getGetIncidentEvidenceUrl(incidentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetIncidentEvidenceQueryKey = (incidentId: number,) => {
+    return [
+    `/api/incidents/${incidentId}/evidence`
+    ] as const;
+    }
+
+
+export const getGetIncidentEvidenceQueryOptions = <TData = Awaited<ReturnType<typeof getIncidentEvidence>>, TError = ErrorType<ForbiddenResponse>>(incidentId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getIncidentEvidence>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetIncidentEvidenceQueryKey(incidentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getIncidentEvidence>>> = ({ signal }) => getIncidentEvidence(incidentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: incidentId !== null && incidentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getIncidentEvidence>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetIncidentEvidenceQueryResult = NonNullable<Awaited<ReturnType<typeof getIncidentEvidence>>>
+export type GetIncidentEvidenceQueryError = ErrorType<ForbiddenResponse>
+
+
+/**
+ * @summary List private evidence metadata for the owner or authority
+ */
+
+export function useGetIncidentEvidence<TData = Awaited<ReturnType<typeof getIncidentEvidence>>, TError = ErrorType<ForbiddenResponse>>(
+ incidentId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getIncidentEvidence>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetIncidentEvidenceQueryOptions(incidentId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateIncidentEvidenceUrl = (incidentId: number,) => {
+
+
+
+
+  return `/api/incidents/${incidentId}/evidence`
+}
+
+/**
+ * @summary Save a private synthetic evidence entry for the incident owner
+ */
+export const createIncidentEvidence = async (incidentId: number,
+    incidentEvidenceInput: IncidentEvidenceInput, options?: Parameters<typeof customFetch>[1]): Promise<IncidentEvidence> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<IncidentEvidence>(getCreateIncidentEvidenceUrl(incidentId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(incidentEvidenceInput)
+  }
+);}
+
+
+
+
+
+export const getCreateIncidentEvidenceMutationKey = () => ['createIncidentEvidence'] as const;
+
+export const getCreateIncidentEvidenceMutationOptions = <TError = ErrorType<ForbiddenResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createIncidentEvidence>>, TError,CreateIncidentEvidenceMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createIncidentEvidence>>, TError,CreateIncidentEvidenceMutationVariables, TContext> => {
+
+const mutationKey = getCreateIncidentEvidenceMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createIncidentEvidence>>, CreateIncidentEvidenceMutationVariables> = (props) => {
+          const {incidentId,data} = props ?? {};
+
+          return  createIncidentEvidence(incidentId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateIncidentEvidenceMutationResult = NonNullable<Awaited<ReturnType<typeof createIncidentEvidence>>>
+    export type CreateIncidentEvidenceMutationBody = BodyType<IncidentEvidenceInput>
+    export type CreateIncidentEvidenceMutationError = ErrorType<ForbiddenResponse>
+    export type CreateIncidentEvidenceMutationVariables = {incidentId: number;data: BodyType<IncidentEvidenceInput>}
+
+    /**
+ * @summary Save a private synthetic evidence entry for the incident owner
+ */
+export const useCreateIncidentEvidence = <TError = ErrorType<ForbiddenResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createIncidentEvidence>>, TError,CreateIncidentEvidenceMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createIncidentEvidence>>,
+        TError,
+        CreateIncidentEvidenceMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateIncidentEvidenceMutationOptions(options));
+    }
+
+export const getRespondToNearbySafetyRequestUrl = (incidentId: number,) => {
+
+
+
+
+  return `/api/incidents/${incidentId}/nearby-response`
+}
+
+/**
+ * @summary Record an anonymous demo response to a nearby safety request
+ */
+export const respondToNearbySafetyRequest = async (incidentId: number,
+    nearbyAssistanceInput: NearbyAssistanceInput, options?: Parameters<typeof customFetch>[1]): Promise<NearbyAssistanceResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<NearbyAssistanceResponse>(getRespondToNearbySafetyRequestUrl(incidentId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(nearbyAssistanceInput)
+  }
+);}
+
+
+
+
+
+export const getRespondToNearbySafetyRequestMutationKey = () => ['respondToNearbySafetyRequest'] as const;
+
+export const getRespondToNearbySafetyRequestMutationOptions = <TError = ErrorType<ForbiddenResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof respondToNearbySafetyRequest>>, TError,RespondToNearbySafetyRequestMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof respondToNearbySafetyRequest>>, TError,RespondToNearbySafetyRequestMutationVariables, TContext> => {
+
+const mutationKey = getRespondToNearbySafetyRequestMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof respondToNearbySafetyRequest>>, RespondToNearbySafetyRequestMutationVariables> = (props) => {
+          const {incidentId,data} = props ?? {};
+
+          return  respondToNearbySafetyRequest(incidentId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RespondToNearbySafetyRequestMutationResult = NonNullable<Awaited<ReturnType<typeof respondToNearbySafetyRequest>>>
+    export type RespondToNearbySafetyRequestMutationBody = BodyType<NearbyAssistanceInput>
+    export type RespondToNearbySafetyRequestMutationError = ErrorType<ForbiddenResponse>
+    export type RespondToNearbySafetyRequestMutationVariables = {incidentId: number;data: BodyType<NearbyAssistanceInput>}
+
+    /**
+ * @summary Record an anonymous demo response to a nearby safety request
+ */
+export const useRespondToNearbySafetyRequest = <TError = ErrorType<ForbiddenResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof respondToNearbySafetyRequest>>, TError,RespondToNearbySafetyRequestMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof respondToNearbySafetyRequest>>,
+        TError,
+        RespondToNearbySafetyRequestMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRespondToNearbySafetyRequestMutationOptions(options));
     }
 

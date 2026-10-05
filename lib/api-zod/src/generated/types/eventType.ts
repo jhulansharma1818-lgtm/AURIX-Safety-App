@@ -21,4 +21,13 @@ export const EventType = {
   help_reached: 'help_reached',
   incident_resolved: 'incident_resolved',
   status_updated: 'status_updated',
+  safety_request_received: 'safety_request_received',
+  manual_sos_triggered: 'manual_sos_triggered',
+  new_incident_detected: 'new_incident_detected',
+  trusted_contact_notification_simulated: 'trusted_contact_notification_simulated',
+  responder_notification_simulated: 'responder_notification_simulated',
+  risk_assessment_completed: 'risk_assessment_completed',
+  incident_verification_updated: 'incident_verification_updated',
+  anonymous_nearby_response: 'anonymous_nearby_response',
+  evidence_metadata_saved: 'evidence_metadata_saved',
 } as const;

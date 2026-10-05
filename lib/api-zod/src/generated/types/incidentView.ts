@@ -5,11 +5,15 @@
  * AURIX journey, incident, contact, responder, and ResponseChain API
  * OpenAPI spec version: 0.2.0
  */
+import type { DetectionMode } from './detectionMode';
+import type { IncidentContext } from './incidentContext';
 import type { IncidentSubject } from './incidentSubject';
 import type { IncidentType } from './incidentType';
+import type { LastSafeLocation } from './lastSafeLocation';
 import type { ResponseEvent } from './responseEvent';
 import type { ResponseStatus } from './responseStatus';
 import type { RiskLevel } from './riskLevel';
+import type { RiskSignal } from './riskSignal';
 import type { VerificationStatus } from './verificationStatus';
 
 export interface IncidentView {
@@ -18,6 +22,12 @@ export interface IncidentView {
   journeyId: number | null;
   incidentType: IncidentType;
   riskLevel: RiskLevel;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  riskScore: number;
+  riskSignals: RiskSignal[];
   latitude: number;
   longitude: number;
   detectedAt: Date;
@@ -27,6 +37,21 @@ export interface IncidentView {
   resolvedAt: Date | null;
   /** @nullable */
   destination: string | null;
+  contextType: IncidentContext;
+  /** @nullable */
+  campusZoneId: number | null;
+  /** @nullable */
+  campusZoneName: string | null;
+  /** @nullable */
+  locationLabel: string | null;
+  detectionMode: DetectionMode;
+  /** @nullable */
+  historicalReportsAvailable: boolean | null;
+  lastSafeLocation: LastSafeLocation | null;
+  /** @nullable */
+  assignedResponderId: number | null;
+  /** @nullable */
+  assignedResponderType: string | null;
   victim: IncidentSubject | null;
   events: ResponseEvent[];
 }

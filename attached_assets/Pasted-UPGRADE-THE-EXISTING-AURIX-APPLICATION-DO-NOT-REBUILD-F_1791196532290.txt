@@ -1,0 +1,660 @@
+UPGRADE THE EXISTING AURIX APPLICATION — DO NOT REBUILD FROM SCRATCH.
+
+AURIX
+Adaptive Urban Risk Intelligence eXchange
+Tagline: Turning Risk into Response.
+
+IMPORTANT:
+The existing AURIX application already has:
+- React frontend
+- PostgreSQL/Drizzle backend
+- Clerk authentication
+- User Portal
+- Emergency Contact Portal
+- Responder Portal
+- Authority Portal
+- Start Journey
+- Expected Journey / route monitoring
+- AI Risk Detection
+- Silent Verification
+- ResponseChain
+- Trusted Contacts
+- Verified Responders
+- Nearby Safety Network
+- Privacy Center
+- Incident Timeline
+- Manual SOS
+- Demo Mode
+
+DO NOT remove, replace, or break any of these existing features.
+
+First inspect the existing codebase, database schema, routes, components and APIs.
+Reuse existing architecture, components, tables and APIs wherever possible.
+Only add or modify what is required for the following Campus Safety + New Incident Detection upgrade.
+
+==================================================
+1. CAMPUS SAFETY MODE
+==================================================
+
+Add a dedicated "Campus Safety Mode" to AURIX.
+
+It should support campus environments such as:
+- Girls Hostel
+- Academic Blocks
+- Parking Areas
+- Campus Gates
+- Isolated Pathways
+- Construction / Maintenance Zones
+- Cafeteria / Common Areas
+- Other Campus Zones
+
+Add a Campus Safety section to the User Portal.
+
+Show:
+- Current campus zone
+- Safety status
+- Active incidents nearby
+- Available verified responders
+- Coverage / assistance availability
+- Quick "I FEEL UNSAFE" action
+- Emergency SOS
+
+Important:
+Do NOT label an entire campus or area as dangerous simply because of historical reports.
+
+Use contextual wording such as:
+"Safety information available"
+"Limited nearby assistance"
+"Active incident nearby"
+"Additional verification recommended"
+
+==================================================
+2. "I FEEL UNSAFE" FEATURE
+==================================================
+
+Add a prominent but non-accidental "I FEEL UNSAFE" action.
+
+When selected, show:
+
+"I FEEL UNSAFE"
+
+Options:
+1. Someone is following me
+2. I'm being surrounded
+3. Someone is threatening me
+4. I need assistance
+5. Other
+
+After selection:
+- Create a safety incident.
+- Capture the user's current simulated location.
+- Attach the active journey if one exists.
+- Assign an appropriate risk level.
+- Start the existing Silent Verification / ResponseChain when appropriate.
+- Notify verified emergency contacts.
+- Notify available verified responders.
+- Show the incident in the Authority Portal.
+
+For immediate-danger situations, allow the user to activate Manual SOS directly without waiting for verification.
+
+Do not claim that AI can determine with certainty that a crime is occurring.
+
+==================================================
+3. "BEING SURROUNDED" SCENARIO
+==================================================
+
+Add a dedicated demo scenario:
+
+"User Being Surrounded"
+
+Flow:
+
+User selects:
+"I'M BEING SURROUNDED"
+
+→ CRITICAL / HIGH safety incident
+→ location captured
+→ trusted contact notified
+→ verified responders notified
+→ Authority Portal updated
+→ nearby safety network may be activated if required
+→ responder accepts
+→ responder is on the way
+→ help reached
+→ incident resolved
+
+Create a clear Incident Timeline.
+
+==================================================
+4. NEW INCIDENT — NO HISTORICAL DATA
+==================================================
+
+This is a CORE AURIX differentiator.
+
+Add a new detection mode:
+
+"NEW INCIDENT — NO HISTORY"
+
+AURIX must NOT depend entirely on historical hotspot data.
+
+The system should be able to detect a potentially concerning situation in a location where there are no previous incident reports.
+
+Use current signals such as:
+- unexpected prolonged stop
+- route deviation
+- unusual journey behaviour
+- no response to Silent Verification
+- user "I FEEL UNSAFE" signal
+- manual SOS
+- multiple simultaneous safety requests
+- contextual location information
+
+Example UI:
+
+🆕 NEW INCIDENT DETECTED
+
+"Historical incident reports are unavailable for this location.
+AURIX detected unusual journey behaviour in real time."
+
+Then show:
+
+WHY WAS THIS DETECTED?
+
+Example:
+• Unexpected stop
+• Route deviation
+• No response to verification
+
+Important principle:
+
+"NO HISTORICAL INCIDENTS ≠ NO CURRENT RISK"
+
+Do NOT claim:
+- crime prediction
+- guaranteed danger detection
+- guaranteed prevention
+- certainty that an incident is a crime
+
+AURIX should identify signals requiring verification and response.
+
+==================================================
+5. CONTEXT-AWARE RISK ENGINE
+==================================================
+
+Extend the existing risk engine.
+
+Possible demo signals:
+
+Route deviation = +25
+Unexpected prolonged stop = +20
+Contextual risk information = +15
+User safety signal = +40
+Manual SOS = immediate CRITICAL
+
+Show:
+
+Risk Level:
+LOW
+MEDIUM
+HIGH
+CRITICAL
+
+Also show:
+
+"WHY WAS THIS DETECTED?"
+
+The UI should explain which signals contributed to the risk assessment.
+
+Keep this explainable and transparent.
+
+==================================================
+6. LOW-COVERAGE / ISOLATED AREA AWARENESS
+==================================================
+
+Add contextual awareness for areas where assistance availability is limited.
+
+Example:
+
+⚠️ LIMITED ASSISTANCE AREA
+
+"Nearby verified responders may be limited in this area."
+
+Actions:
+
+CONTINUE
+VIEW SAFER ROUTE
+CONTACT TRUSTED PERSON
+
+Do NOT call the area "dangerous" unless there is verified evidence.
+
+This feature should work as contextual awareness, not fear generation.
+
+==================================================
+7. LAST SAFE LOCATION
+==================================================
+
+Add "Last Safe Location" to relevant incident views.
+
+Store/display:
+- last known safe location
+- timestamp
+- journey ID
+- incident detection location
+- current incident status
+
+Example:
+
+LAST SAFE LOCATION
+16:40
+Main Campus Gate
+
+INCIDENT DETECTED
+16:44
+North Parking Area
+
+This should appear in:
+- User Portal
+- Emergency Contact Portal
+- Responder Portal
+- Authority Portal
+
+Only expose location information according to role and privacy permissions.
+
+==================================================
+8. PRIVACY-PRESERVING NEARBY SAFETY NETWORK
+==================================================
+
+Keep the existing Nearby Safety Network.
+
+Improve it for campus/public-space incidents.
+
+VERIFIED RESPONDERS:
+Can receive actionable incident information according to permissions.
+
+UNVERIFIED NEARBY USERS:
+May receive only a limited anonymous safety request when necessary.
+
+Example:
+
+⚠️ SAFETY ASSISTANCE REQUESTED NEARBY
+
+"Someone nearby may need safety assistance."
+
+Buttons:
+I CAN HELP
+NOT AVAILABLE
+
+Do NOT expose unnecessarily:
+- victim name
+- phone number
+- photograph
+- personal profile
+- unnecessary exact location
+
+Privacy must be role-based.
+
+==================================================
+9. INCIDENT VERIFICATION WORKFLOW
+==================================================
+
+Add clear incident states:
+
+REPORTED
+↓
+UNDER VERIFICATION
+↓
+VERIFIED
+or
+UNCONFIRMED
+↓
+RESOLVED
+
+Important:
+A user report, social media claim, or automated signal must NOT automatically be treated as a confirmed crime.
+
+Use the principle:
+
+"ALERT FAST. VERIFY RESPONSIBLY. RESPOND APPROPRIATELY."
+
+Authority Portal should be able to update verification status.
+
+==================================================
+10. CAMPUS REPORTS
+==================================================
+
+Add a campus incident/report workflow.
+
+Campus users can submit:
+- safety concern
+- suspicious activity
+- harassment concern
+- unsafe area
+- infrastructure-related safety concern
+- other
+
+Reports should initially be:
+
+REPORTED / UNDER VERIFICATION
+
+Authority/security users can review and update the status.
+
+Use synthetic/demo data only.
+
+==================================================
+11. AUTHORITY PORTAL UPGRADE
+==================================================
+
+Upgrade the existing Authority Portal.
+
+Add dashboard sections:
+
+ACTIVE INCIDENTS
+CRITICAL SOS
+USER SAFETY ALERTS
+CAMPUS INCIDENTS
+NEW INCIDENTS — NO HISTORY
+UNVERIFIED REPORTS
+VERIFIED INCIDENTS
+RESPONDERS
+RESOLVED INCIDENTS
+
+Add filters:
+
+- SOS
+- High Risk
+- Critical
+- Campus
+- Public Space
+- New Incident
+- Unverified
+- Verified
+- Resolved
+
+Each incident should show:
+- incident type
+- risk level
+- status
+- time
+- location
+- journey/user reference according to permissions
+- assigned responder
+- response status
+- timeline
+
+==================================================
+12. INCIDENT EVIDENCE / SECURE EVIDENCE VAULT
+==================================================
+
+Add an optional evidence section to incidents.
+
+Prototype fields:
+- photo
+- video
+- audio
+- description
+- timestamp
+- location
+
+For the prototype, uploads may be simulated or stored using the existing supported storage system.
+
+Evidence must be private by default.
+
+Only authorized roles should access it.
+
+Do NOT automatically publish evidence to other users.
+
+For sensitive incidents, especially involving minors, apply strict privacy controls.
+
+==================================================
+13. DATABASE
+==================================================
+
+Inspect the existing PostgreSQL/Drizzle schema first.
+
+Reuse existing tables wherever possible.
+
+If required, add or extend models for:
+
+campus_zones
+campus_reports
+incident_evidence
+incident_verification
+incident_context
+
+Do NOT duplicate existing tables.
+
+Use relationships with existing:
+users
+emergency_contacts
+responders
+journeys
+incidents
+response_events
+
+Store:
+- incident type
+- campus/public-space context
+- risk level
+- verification status
+- location
+- last safe location
+- timestamps
+- responder
+- response status
+- evidence references
+- privacy/access metadata
+
+Run the proper database migration after schema changes.
+
+==================================================
+14. DEMO MODE
+==================================================
+
+Expand the existing Demo Mode.
+
+Keep ALL existing scenarios.
+
+Add:
+
+1. Normal Journey
+2. Route Deviation
+3. Unexpected Stop
+4. New Incident — No History
+5. User Doesn't Respond
+6. User Requests Help
+7. Manual SOS
+8. User Being Followed
+9. User Being Surrounded
+10. Low-Coverage Area
+11. Campus Safety Alert
+12. Unverified Campus Report
+13. Verified Campus Incident
+14. Responder Accepts
+15. Help Reached
+16. Incident Resolved
+
+Every scenario must be deterministic and work with synthetic data.
+
+==================================================
+15. DEMO SCENARIO: JAMUI-TYPE PUBLIC ROAD INCIDENT
+==================================================
+
+Create a safe fictional demo scenario inspired by a public-road safety situation.
+
+DO NOT use real victim names, real personal data, or claim that AURIX detected a real-world incident.
+
+Scenario:
+
+"Public Road — New Incident Without History"
+
+A user is travelling normally.
+
+There are no historical incident reports for the location.
+
+Then:
+- journey becomes unusual
+- unexpected stop occurs
+- user does not respond to Silent Verification
+
+AURIX displays:
+
+🆕 NEW INCIDENT — NO HISTORY
+
+"Historical reports are unavailable.
+AURIX detected unusual journey behaviour and initiated verification."
+
+Then:
+
+Silent Verification
+↓
+No Response
+↓
+Trusted Contact Notified
+↓
+Verified Responder Alerted
+↓
+Authority Portal Updated
+↓
+Responder Accepts
+↓
+Help Reached
+↓
+Incident Resolved
+
+==================================================
+16. DEMO SCENARIO: CAMPUS INCIDENT
+==================================================
+
+Create a fictional campus demo.
+
+Scenario:
+
+User is walking through an isolated campus pathway.
+
+User selects:
+
+"I FEEL UNSAFE"
+
+→ "I'm being followed"
+
+Then:
+
+Safety Incident Created
+↓
+Trusted Contact Notified
+↓
+Verified Campus Responder Alerted
+↓
+Authority Portal Updated
+↓
+Responder Accepts
+↓
+Help Reached
+↓
+Incident Resolved
+
+Show the complete timeline.
+
+==================================================
+17. UI / UX
+==================================================
+
+Keep the existing premium AURIX design.
+
+Do NOT turn the application into one huge scrolling dashboard.
+
+Keep separate app-like screens/portals.
+
+Use:
+- dark navy/black
+- electric blue accents
+- clear warning states
+- clean cards
+- strong typography
+- responsive mobile/tablet layout
+- smooth transitions
+- clear CTA buttons
+
+Safety actions must be obvious under stress.
+
+Use clear labels:
+LOW
+MEDIUM
+HIGH
+CRITICAL
+
+Avoid excessive animations.
+
+Do not make the UI look like a generic AI dashboard.
+
+==================================================
+18. IMPORTANT SAFETY / PRODUCT CLAIMS
+==================================================
+
+AURIX is a hackathon prototype.
+
+Do NOT claim:
+- guaranteed crime prediction
+- guaranteed danger detection
+- automatic police dispatch
+- automatic ambulance dispatch
+- real emergency-service integration
+- real-time GPS unless actually connected
+- real-world incident verification unless actually integrated
+
+Clearly label simulated data where necessary:
+
+"Demo / Simulated Data"
+
+Use:
+"AI-assisted risk assessment"
+"Contextual risk detection"
+"Verification required"
+"Simulated responder"
+where appropriate.
+
+==================================================
+19. TESTING
+==================================================
+
+After implementation:
+
+1. Run type-check.
+2. Run database migration safely.
+3. Test frontend routes.
+4. Test backend APIs.
+5. Test authentication/role permissions.
+6. Test User Portal.
+7. Test Emergency Contact Portal.
+8. Test Responder Portal.
+9. Test Authority Portal.
+10. Test Manual SOS.
+11. Test I FEEL UNSAFE.
+12. Test New Incident — No History.
+13. Test Campus Incident.
+14. Test Being Surrounded.
+15. Test Nearby Safety Network privacy.
+16. Test Incident Timeline.
+17. Test verification states.
+18. Test Demo Mode.
+19. Fix runtime errors.
+20. Ensure the existing AURIX features still work.
+
+IMPORTANT:
+Do not stop after writing code.
+Actually test the implementation in the current Replit environment.
+
+If an existing feature conflicts with this upgrade, preserve the existing architecture and make the smallest safe change.
+
+At the end, provide a concise summary of:
+- files changed
+- database changes
+- APIs added/changed
+- features implemented
+- tests completed
+- any remaining limitations
+
+DO NOT rebuild AURIX from scratch.
+DO NOT delete existing functionality.
+DO NOT replace the existing backend.
+EXTEND THE EXISTING AURIX SYSTEM.

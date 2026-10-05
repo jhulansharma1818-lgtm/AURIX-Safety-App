@@ -5,18 +5,26 @@ import {
   pgTable,
   serial,
   doublePrecision,
+  boolean,
+  jsonb,
+  text,
   timestamp,
 } from "drizzle-orm/pg-core";
 import { z } from "zod/v4";
 import {
   incidentTypeEnum,
+  incidentContextEnum,
+  detectionModeEnum,
   responseStatusEnum,
   riskLevelEnum,
   verificationStatusEnum,
+  type LastSafeLocation,
+  type RiskSignal,
 } from "./shared";
 import { journeysTable } from "./journeys";
 import { respondersTable } from "./responders";
 import { usersTable } from "./users";
+import { campusZonesTable } from "./campus-zones";
 
 export const incidentsTable = pgTable(
   "aurix_incidents",
@@ -34,8 +42,18 @@ export const incidentsTable = pgTable(
     ),
     incidentType: incidentTypeEnum("incident_type").notNull(),
     riskLevel: riskLevelEnum("risk_level").notNull(),
+    riskScore: integer("risk_score").notNull().default(0),
+    riskSignals: jsonb("risk_signals").$type<RiskSignal[]>().notNull().default([]),
     latitude: doublePrecision("latitude").notNull(),
     longitude: doublePrecision("longitude").notNull(),
+    locationLabel: text("location_label"),
+    contextType: incidentContextEnum("context_type").notNull().default("public_space"),
+    campusZoneId: integer("campus_zone_id").references(() => campusZonesTable.id, {
+      onDelete: "set null",
+    }),
+    detectionMode: detectionModeEnum("detection_mode").notNull().default("journey_signal"),
+    historicalReportsAvailable: boolean("historical_reports_available"),
+    lastSafeLocation: jsonb("last_safe_location").$type<LastSafeLocation>(),
     detectedAt: timestamp("detected_at", { withTimezone: true }).notNull().defaultNow(),
     verificationStatus: verificationStatusEnum("verification_status")
       .notNull()

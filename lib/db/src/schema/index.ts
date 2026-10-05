@@ -5,3 +5,6 @@ export * from "./responders";
 export * from "./journeys";
 export * from "./incidents";
 export * from "./response-events";
+export * from "./campus-zones";
+export * from "./campus-reports";
+export * from "./incident-evidence";

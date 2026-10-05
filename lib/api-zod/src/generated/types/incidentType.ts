@@ -15,4 +15,9 @@ export const IncidentType = {
   user_request: 'user_request',
   no_response: 'no_response',
   manual_report: 'manual_report',
+  user_feels_unsafe: 'user_feels_unsafe',
+  being_followed: 'being_followed',
+  being_surrounded: 'being_surrounded',
+  manual_sos: 'manual_sos',
+  new_incident: 'new_incident',
 } as const;

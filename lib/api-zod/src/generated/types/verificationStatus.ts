@@ -15,4 +15,9 @@ export const VerificationStatus = {
   confirmed_safe: 'confirmed_safe',
   help_requested: 'help_requested',
   no_response: 'no_response',
+  reported: 'reported',
+  under_verification: 'under_verification',
+  verified: 'verified',
+  unconfirmed: 'unconfirmed',
+  resolved: 'resolved',
 } as const;

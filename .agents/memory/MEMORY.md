@@ -1,0 +1,1 @@
+- [React version alignment](react-version-alignment.md) — keep React and ReactDOM on the same workspace catalog version to prevent Vite runtime startup failures.
